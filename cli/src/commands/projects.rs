@@ -3,8 +3,7 @@ use crate::config::Config;
 use crate::error::AppError;
 use acari_lib::Project;
 use itertools::Itertools;
-use prettytable::{cell, format, row, table};
-use std::str;
+use prettytable::{cell, row, table};
 
 pub fn all_projects(config: &Config, output_format: OutputFormat) -> Result<(), AppError> {
   let client = config.client();
@@ -33,16 +32,12 @@ fn print_pretty(projects: Vec<(&str, Vec<&Project>)>) {
 
   for (customer_name, group) in projects {
     projects_table.add_row(row![customer_name, &group.iter().map(|p| p.name.as_str()).join("\n")]);
-  };
-//  projects_table.set_format(*format::consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
-  projects_table.printstd();  
+  }
+  projects_table.printstd();
 }
 
 fn print_json(projects: Vec<Project>) -> Result<(), AppError> {
-  println!(
-    "{}",
-    serde_json::to_string_pretty(&projects)?
-  );
+  println!("{}", serde_json::to_string_pretty(&projects)?);
 
   Ok(())
 }

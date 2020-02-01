@@ -1,8 +1,10 @@
 mod error;
 mod model;
+mod query;
 
 pub use error::AcariError;
-pub use model::{Account, Customer, Project, Service, User};
+pub use model::{Account, Customer, Project, Service, TimeEntry, Tracker, TrackingTimeEntry, User};
+pub use query::DateSpan;
 pub use serde::de::DeserializeOwned;
 
 use model::MiteEntity;
@@ -86,6 +88,19 @@ impl Client {
         .into_iter()
         .filter_map(|entity| match entity {
           MiteEntity::Service(service) => Some(service),
+          _ => None,
+        })
+        .collect(),
+    )
+  }
+
+  pub fn get_time_entries(&self, date_span: DateSpan) -> Result<Vec<TimeEntry>, AcariError> {
+    Ok(
+      self
+        .get::<Vec<MiteEntity>>(&format!("/time_entries.json?user=current&{}", date_span.query_param()))?
+        .into_iter()
+        .filter_map(|entity| match entity {
+          MiteEntity::TimeEntry(time_entry) => Some(time_entry),
           _ => None,
         })
         .collect(),
