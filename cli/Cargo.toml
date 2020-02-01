@@ -8,9 +8,11 @@ edition = "2018"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1"
 clap = "2"
 dirs = "2"
 toml = "0"
 text_io = "0"
 prettytable-rs = "0"
+itertools = "0"
 acari-lib = { path = "../lib" }

@@ -2,10 +2,10 @@ mod error;
 mod model;
 
 pub use error::AcariError;
-pub use model::{Account, User};
+pub use model::{Account, Customer, Project, Service, User};
 pub use serde::de::DeserializeOwned;
 
-use model::MiteResponse;
+use model::MiteEntity;
 
 use reqwest::{blocking, header, StatusCode};
 
@@ -27,7 +27,7 @@ impl Client {
     }
   }
 
-  fn get(&self, uri: &str) -> Result<MiteResponse, AcariError> {
+  fn get<T: DeserializeOwned>(&self, uri: &str) -> Result<T, AcariError> {
     let response = self
       .client
       .get(&format!("https://{}{}", self.domain, uri))
@@ -41,24 +41,63 @@ impl Client {
 
   pub fn get_account(&self) -> Result<Account, AcariError> {
     match self.get("/account.json")? {
-      MiteResponse::Account(account) => Ok(account),
+      MiteEntity::Account(account) => Ok(account),
       response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
     }
   }
 
   pub fn get_myself(&self) -> Result<User, AcariError> {
     match self.get("/myself.json")? {
-      MiteResponse::User(user) => Ok(user),
+      MiteEntity::User(user) => Ok(user),
       response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
     }
   }
+
+  pub fn get_customers(&self) -> Result<Vec<Customer>, AcariError> {
+    Ok(
+      self
+        .get::<Vec<MiteEntity>>("/customers.json")?
+        .into_iter()
+        .filter_map(|entity| match entity {
+          MiteEntity::Customer(customer) => Some(customer),
+          _ => None,
+        })
+        .collect(),
+    )
+  }
+
+  pub fn get_projects(&self) -> Result<Vec<Project>, AcariError> {
+    Ok(
+      self
+        .get::<Vec<MiteEntity>>("/projects.json")?
+        .into_iter()
+        .filter_map(|entity| match entity {
+          MiteEntity::Project(project) => Some(project),
+          _ => None,
+        })
+        .collect(),
+    )
+  }
+
+  pub fn get_services(&self) -> Result<Vec<Service>, AcariError> {
+    Ok(
+      self
+        .get::<Vec<MiteEntity>>("/services.json")?
+        .into_iter()
+        .filter_map(|entity| match entity {
+          MiteEntity::Service(service) => Some(service),
+          _ => None,
+        })
+        .collect(),
+    )
+  }
 }
 
-fn handle_response(response: blocking::Response) -> Result<MiteResponse, AcariError> {
+fn handle_response<T: DeserializeOwned>(response: blocking::Response) -> Result<T, AcariError> {
   match response.status() {
     StatusCode::OK => Ok(response.json()?),
-    status => match response.json::<MiteResponse>() {
-      Ok(MiteResponse::Error(msg)) => Err(AcariError::Mite(status.as_u16(), msg)),
+    status => match response.json::<MiteEntity>() {
+      Ok(MiteEntity::Error(msg)) => Err(AcariError::Mite(status.as_u16(), msg)),
       _ => Err(AcariError::Mite(status.as_u16(), status.to_string())),
     },
   }

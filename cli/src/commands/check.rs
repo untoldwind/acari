@@ -1,12 +1,25 @@
+use super::OutputFormat;
 use crate::config::Config;
 use crate::error::AppError;
+use acari_lib::{Account, User};
 use prettytable::{cell, format, row, table};
+use serde_json::json;
 
-pub fn check(config: &Config) -> Result<(), AppError> {
+pub fn check(config: &Config, output_format: OutputFormat) -> Result<(), AppError> {
   let client = config.client();
   let account = client.get_account()?;
   let user = client.get_myself()?;
 
+  match output_format {
+    OutputFormat::Pretty => print_pretty(account, user),
+    OutputFormat::Json => print_json(account, user)?,
+    OutputFormat::Flat => print_flat(account, user),
+  }
+
+  Ok(())
+}
+
+fn print_pretty(account: Account, user: User) {
   let mut account_table = table!(
     ["Id", account.id.to_string()],
     ["Name", account.name],
@@ -34,5 +47,21 @@ pub fn check(config: &Config) -> Result<(), AppError> {
   println!("User");
   user_table.set_format(*format::consts::FORMAT_CLEAN);
   user_table.printstd();
+}
+
+fn print_json(account: Account, user: User) -> Result<(), AppError> {
+  println!(
+    "{}",
+    serde_json::to_string_pretty(&json!({
+      "account": account,
+      "user": user,
+    }))?
+  );
+
   Ok(())
+}
+
+fn print_flat(account: Account, user: User) {
+  println!("{}", account.name);
+  println!("{}", user.name);
 }
