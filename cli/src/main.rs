@@ -22,6 +22,7 @@ fn main() -> Result<(), AppError> {
     )
     .subcommand(SubCommand::with_name("init").about("Initialize connection to mite"))
     .subcommand(SubCommand::with_name("check").about("Check connection to mite"))
+    .subcommand(SubCommand::with_name("customers").about("List all customers"))
     .subcommand(SubCommand::with_name("projects").about("List all projects"))
     .subcommand(SubCommand::with_name("services").about("List all services"))
     .subcommand(
@@ -41,6 +42,7 @@ fn main() -> Result<(), AppError> {
     Some(config) => match matches.subcommand() {
       ("init", _) => commands::init(),
       ("check", _) => commands::check(&config, output_format),
+      ("customers", _) => commands::customers(&config, output_format),
       ("projects", _) => commands::all_projects(&config, output_format),
       ("services", _) => commands::services(&config, output_format),
       ("entries", Some(sub_matches)) => {

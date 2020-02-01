@@ -55,7 +55,7 @@ pub struct Service {
   pub id: u32,
   pub name: String,
   pub note: String,
-  pub hourly_rate: u32,
+  pub hourly_rate: Option<u32>,
   pub billable: bool,
   pub archived: bool,
   pub created_at: DateTime<Utc>,

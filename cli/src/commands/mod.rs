@@ -1,10 +1,12 @@
 mod check;
+mod customers;
 mod entries;
 mod init;
 mod projects;
 mod services;
 
 pub use check::*;
+pub use customers::*;
 pub use entries::*;
 pub use init::*;
 pub use projects::*;

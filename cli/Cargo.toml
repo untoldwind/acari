@@ -15,4 +15,5 @@ toml = "0"
 text_io = "0"
 prettytable-rs = "0"
 itertools = "0"
+chrono = { version = "0.4", features = ["serde"] }
 acari-lib = { path = "../lib" }
