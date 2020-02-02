@@ -1,15 +1,17 @@
+mod all_projects;
 mod check;
 mod customers;
 mod entries;
 mod init;
-mod projects;
+mod projects_of_customer;
 mod services;
 
+pub use all_projects::*;
 pub use check::*;
 pub use customers::*;
 pub use entries::*;
 pub use init::*;
-pub use projects::*;
+pub use projects_of_customer::*;
 pub use services::*;
 
 use acari_lib::AcariError;

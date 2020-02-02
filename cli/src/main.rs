@@ -22,7 +22,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .subcommand(SubCommand::with_name("init").about("Initialize connection to mite"))
     .subcommand(SubCommand::with_name("check").about("Check connection to mite"))
     .subcommand(SubCommand::with_name("customers").about("List all customers"))
-    .subcommand(SubCommand::with_name("projects").about("List all projects"))
+    .subcommand(
+      SubCommand::with_name("projects")
+        .arg(Arg::with_name("customer").help("Optional: List only projects of a specific customer"))
+        .about("List all projects"),
+    )
     .subcommand(SubCommand::with_name("services").about("List all services"))
     .subcommand(
       SubCommand::with_name("entries")
@@ -44,7 +48,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ("init", _) => commands::init()?,
         ("check", _) => commands::check(client.as_ref(), output_format)?,
         ("customers", _) => commands::customers(client.as_ref(), output_format)?,
-        ("projects", _) => commands::all_projects(client.as_ref(), output_format)?,
+        ("projects", Some(sub_matches)) => match sub_matches.value_of("customer") {
+          Some(customer) => commands::projects_of_customer(client.as_ref(), customer, output_format)?,
+          None => commands::all_projects(client.as_ref(), output_format)?,
+        },
         ("services", _) => commands::services(client.as_ref(), output_format)?,
         ("entries", Some(sub_matches)) => {
           let span_arg = sub_matches
