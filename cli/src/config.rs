@@ -14,15 +14,13 @@ pub struct Config {
 }
 
 impl Config {
-  pub fn read() -> Result<Option<Config>, AcariError> {
+  pub fn read() -> Result<Option<Config>, Box<dyn std::error::Error>> {
     let config_file = config_file();
     match File::open(&config_file) {
       Ok(mut file) => {
         let mut content = vec![];
         file.read_to_end(&mut content)?;
-        Ok(Some(
-          toml::from_slice::<Config>(&content).map_err(|e| AcariError::InternalError(format!("Configration invalid: {}", e)))?,
-        ))
+        Ok(Some(toml::from_slice::<Config>(&content)?))
       }
       Err(ref err) if err.kind() == io::ErrorKind::NotFound => Ok(None),
       Err(err) => Err(err.into()),
@@ -41,8 +39,8 @@ impl Config {
     }
   }
 
-  pub fn write(&self) -> Result<(), AcariError> {
-    let content = toml::to_string_pretty(self).map_err(|e| AcariError::InternalError(format!("Configration invalid: {}", e)))?;
+  pub fn write(&self) -> Result<(), Box<dyn std::error::Error>> {
+    let content = toml::to_string_pretty(self)?;
     let config_file = config_file();
 
     fs::create_dir_all(

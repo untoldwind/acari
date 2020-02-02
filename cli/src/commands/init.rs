@@ -1,15 +1,14 @@
 use crate::config::Config;
-use acari_lib::AcariError;
 use std::io::{stdout, Write};
 use text_io::try_read;
 
-pub fn init() -> Result<(), AcariError> {
+pub fn init() -> Result<(), Box<dyn std::error::Error>> {
   print!("Mite domain: ");
   stdout().flush()?;
-  let domain: String = try_read!("{}\n").map_err(|e| AcariError::InternalError(format!("IO: {}", e)))?;
+  let domain: String = try_read!("{}\n")?;
   print!("API Token: ");
   stdout().flush()?;
-  let token: String = try_read!("{}\n").map_err(|e| AcariError::InternalError(format!("IO: {}", e)))?;
+  let token: String = try_read!("{}\n")?;
 
   Config {
     domain,

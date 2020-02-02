@@ -7,7 +7,7 @@ mod config;
 use commands::OutputFormat;
 use config::Config;
 
-fn main() -> Result<(), AcariError> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
   let app = App::new("acarid")
     .version("0.1")
     .about("Commandline interface for mite")
@@ -41,23 +41,25 @@ fn main() -> Result<(), AcariError> {
     Some(config) => {
       let client = config.client(!matches.is_present("no-cache"))?;
       match matches.subcommand() {
-        ("init", _) => commands::init(),
-        ("check", _) => commands::check(client.as_ref(), output_format),
-        ("customers", _) => commands::customers(client.as_ref(), output_format),
-        ("projects", _) => commands::all_projects(client.as_ref(), output_format),
-        ("services", _) => commands::services(client.as_ref(), output_format),
+        ("init", _) => commands::init()?,
+        ("check", _) => commands::check(client.as_ref(), output_format)?,
+        ("customers", _) => commands::customers(client.as_ref(), output_format)?,
+        ("projects", _) => commands::all_projects(client.as_ref(), output_format)?,
+        ("services", _) => commands::services(client.as_ref(), output_format)?,
         ("entries", Some(sub_matches)) => {
           let span_arg = sub_matches
             .value_of("span")
             .ok_or(AcariError::UserError("Missing <span> argument".to_string()))?;
-          commands::entries(client.as_ref(), output_format, DateSpan::from_string(span_arg)?)
+          commands::entries(client.as_ref(), output_format, DateSpan::from_string(span_arg)?)?;
         }
-        (invalid, _) => Err(AcariError::UserError(format!("Unknown command: {}", invalid))),
+        (invalid, _) => Err(AcariError::UserError(format!("Unknown command: {}", invalid)))?,
       }
     }
     None => match matches.subcommand() {
-      ("init", _) => commands::init(),
-      (_, _) => Err(AcariError::UserError("Missing configuration, run init first".to_string())),
+      ("init", _) => commands::init()?,
+      (_, _) => Err(AcariError::UserError("Missing configuration, run init first".to_string()))?,
     },
   }
+
+  Ok(())
 }
