@@ -1,10 +1,9 @@
 use super::OutputFormat;
-use crate::error::AppError;
-use acari_lib::{Client, Project};
+use acari_lib::{AcariError, Client, Project};
 use itertools::Itertools;
 use prettytable::{cell, format, row, Table};
 
-pub fn all_projects(client: &dyn Client, output_format: OutputFormat) -> Result<(), AppError> {
+pub fn all_projects(client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {
   let mut projects = client.get_projects()?;
 
   projects.sort_by(|p1, p2| p1.customer_name.cmp(&p2.customer_name));
@@ -36,7 +35,7 @@ fn print_pretty(projects: Vec<(&str, Vec<&Project>)>) {
   projects_table.printstd();
 }
 
-fn print_json(projects: Vec<Project>) -> Result<(), AppError> {
+fn print_json(projects: Vec<Project>) -> Result<(), AcariError> {
   println!("{}", serde_json::to_string_pretty(&projects)?);
 
   Ok(())

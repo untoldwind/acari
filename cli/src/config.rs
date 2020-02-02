@@ -1,5 +1,4 @@
-use crate::error::AppError;
-use acari_lib::{CachedClient, Client, StdClient};
+use acari_lib::{AcariError, CachedClient, Client, StdClient};
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
@@ -15,20 +14,22 @@ pub struct Config {
 }
 
 impl Config {
-  pub fn read() -> Result<Option<Config>, AppError> {
+  pub fn read() -> Result<Option<Config>, AcariError> {
     let config_file = config_file();
     match File::open(&config_file) {
       Ok(mut file) => {
         let mut content = vec![];
         file.read_to_end(&mut content)?;
-        Ok(Some(toml::from_slice::<Config>(&content)?))
+        Ok(Some(
+          toml::from_slice::<Config>(&content).map_err(|e| AcariError::InternalError(format!("Configration invalid: {}", e)))?,
+        ))
       }
       Err(ref err) if err.kind() == io::ErrorKind::NotFound => Ok(None),
       Err(err) => Err(err.into()),
     }
   }
 
-  pub fn client(&self, cached: bool) -> Result<Box<dyn Client>, AppError> {
+  pub fn client(&self, cached: bool) -> Result<Box<dyn Client>, AcariError> {
     if cached {
       Ok(Box::new(CachedClient::new(
         &self.domain,
@@ -40,11 +41,15 @@ impl Config {
     }
   }
 
-  pub fn write(&self) -> Result<(), AppError> {
-    let content = toml::to_string_pretty(self)?;
+  pub fn write(&self) -> Result<(), AcariError> {
+    let content = toml::to_string_pretty(self).map_err(|e| AcariError::InternalError(format!("Configration invalid: {}", e)))?;
     let config_file = config_file();
 
-    fs::create_dir_all(&config_file.parent().ok_or_else(|| AppError::InternalError("Invalid config path".to_string()))?)?;
+    fs::create_dir_all(
+      &config_file
+        .parent()
+        .ok_or_else(|| AcariError::InternalError("Invalid config path".to_string()))?,
+    )?;
 
     let mut file = File::create(&config_file)?;
 

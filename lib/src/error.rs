@@ -10,6 +10,8 @@ pub enum AcariError {
   Request(reqwest::Error),
   Json(serde_json::Error),
   Mite(u16, String),
+  UserError(String),
+  InternalError(String),
 }
 
 impl fmt::Display for AcariError {
@@ -21,6 +23,8 @@ impl fmt::Display for AcariError {
       AcariError::Request(err) => write!(f, "Request error: {}", err),
       AcariError::Json(err) => write!(f, "Json error: {}", err),
       AcariError::Mite(status, error) => write!(f, "Mite error ({}): {}", status, error),
+      AcariError::UserError(s) => write!(f, "User error: {}", s),
+      AcariError::InternalError(s) => write!(f, "Internal error: {}", s),
     }
   }
 }

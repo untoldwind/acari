@@ -1,10 +1,9 @@
 use super::OutputFormat;
-use crate::error::AppError;
-use acari_lib::{Client, Service};
+use acari_lib::{AcariError, Client, Service};
 use itertools::Itertools;
 use prettytable::{cell, row, table};
 
-pub fn services(client: &dyn Client, output_format: OutputFormat) -> Result<(), AppError> {
+pub fn services(client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {
   let mut services = client.get_services()?;
 
   services.sort_by(|s1, s2| s1.name.cmp(&s2.name));
@@ -28,7 +27,7 @@ fn print_pretty(services: Vec<Service>) {
   service_table.printstd();
 }
 
-fn print_json(services: Vec<Service>) -> Result<(), AppError> {
+fn print_json(services: Vec<Service>) -> Result<(), AcariError> {
   println!("{}", serde_json::to_string_pretty(&services)?);
 
   Ok(())

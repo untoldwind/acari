@@ -12,7 +12,7 @@ pub use init::*;
 pub use projects::*;
 pub use services::*;
 
-use crate::error::AppError;
+use acari_lib::AcariError;
 
 pub enum OutputFormat {
   Pretty,
@@ -21,12 +21,12 @@ pub enum OutputFormat {
 }
 
 impl OutputFormat {
-  pub fn from_string(format: &str) -> Result<OutputFormat, AppError> {
+  pub fn from_string(format: &str) -> Result<OutputFormat, AcariError> {
     match format {
       "pretty" => Ok(OutputFormat::Pretty),
       "json" => Ok(OutputFormat::Json),
       "flat" => Ok(OutputFormat::Flat),
-      format => Err(AppError::UserError(format!("Invalid output format: {}", format))),
+      format => Err(AcariError::UserError(format!("Invalid output format: {}", format))),
     }
   }
 }

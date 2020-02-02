@@ -1,10 +1,9 @@
 use super::OutputFormat;
-use crate::error::AppError;
-use acari_lib::{Account, Client, User};
+use acari_lib::{AcariError, Account, Client, User};
 use prettytable::{cell, format, row, table};
 use serde_json::json;
 
-pub fn check(client: &dyn Client, output_format: OutputFormat) -> Result<(), AppError> {
+pub fn check(client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {
   let account = client.get_account()?;
   let user = client.get_myself()?;
 
@@ -47,7 +46,7 @@ fn print_pretty(account: Account, user: User) {
   user_table.printstd();
 }
 
-fn print_json(account: Account, user: User) -> Result<(), AppError> {
+fn print_json(account: Account, user: User) -> Result<(), AcariError> {
   println!(
     "{}",
     serde_json::to_string_pretty(&json!({

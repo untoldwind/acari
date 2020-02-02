@@ -1,9 +1,8 @@
 use super::OutputFormat;
-use crate::error::AppError;
-use acari_lib::{Client, Customer};
+use acari_lib::{AcariError, Client, Customer};
 use prettytable::{cell, format, row, Table};
 
-pub fn customers(client: &dyn Client, output_format: OutputFormat) -> Result<(), AppError> {
+pub fn customers(client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {
   let mut customers = client.get_customers()?;
 
   customers.sort_by(|c1, c2| c1.name.cmp(&c2.name));
@@ -28,7 +27,7 @@ fn print_pretty(customers: Vec<Customer>) {
   customers_table.printstd();
 }
 
-fn print_json(customers: Vec<Customer>) -> Result<(), AppError> {
+fn print_json(customers: Vec<Customer>) -> Result<(), AcariError> {
   println!("{}", serde_json::to_string_pretty(&customers)?);
 
   Ok(())

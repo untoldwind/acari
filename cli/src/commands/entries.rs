@@ -1,11 +1,10 @@
 use super::OutputFormat;
-use crate::error::AppError;
-use acari_lib::{Client, DateSpan, TimeEntry};
+use acari_lib::{AcariError, Client, DateSpan, TimeEntry};
 use chrono::NaiveDate;
 use itertools::Itertools;
 use prettytable::{cell, row, table};
 
-pub fn entries(client: &dyn Client, output_format: OutputFormat, date_span: DateSpan) -> Result<(), AppError> {
+pub fn entries(client: &dyn Client, output_format: OutputFormat, date_span: DateSpan) -> Result<(), AcariError> {
   let mut time_entries = client.get_time_entries(date_span)?;
 
   time_entries.sort_by(|t1, t2| t1.date_at.cmp(&t2.date_at));
@@ -33,7 +32,7 @@ fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>) {
   entries_table.printstd();
 }
 
-fn print_json(entries: Vec<TimeEntry>) -> Result<(), AppError> {
+fn print_json(entries: Vec<TimeEntry>) -> Result<(), AcariError> {
   println!("{}", serde_json::to_string_pretty(&entries)?);
 
   Ok(())
