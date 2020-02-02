@@ -3,7 +3,7 @@ use crate::config::Config;
 use crate::error::AppError;
 use acari_lib::Project;
 use itertools::Itertools;
-use prettytable::{cell, row, table};
+use prettytable::{cell, format, row, Table};
 
 pub fn all_projects(config: &Config, output_format: OutputFormat) -> Result<(), AppError> {
   let client = config.client();
@@ -28,7 +28,9 @@ pub fn all_projects(config: &Config, output_format: OutputFormat) -> Result<(), 
 }
 
 fn print_pretty(projects: Vec<(&str, Vec<&Project>)>) {
-  let mut projects_table = table!(["Customer", "Projects"]);
+  let mut projects_table = Table::new();
+  projects_table.set_titles(row!["Customer", "Project"]);
+  projects_table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
 
   for (customer_name, group) in projects {
     projects_table.add_row(row![customer_name, &group.iter().map(|p| p.name.as_str()).join("\n")]);

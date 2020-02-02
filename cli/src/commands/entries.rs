@@ -5,7 +5,7 @@ use acari_lib::DateSpan;
 use acari_lib::TimeEntry;
 use chrono::NaiveDate;
 use itertools::Itertools;
-use prettytable::{cell, format, row, table};
+use prettytable::{cell, row, table};
 
 pub fn entries(config: &Config, output_format: OutputFormat, date_span: DateSpan) -> Result<(), AppError> {
   let client = config.client();
@@ -30,10 +30,10 @@ pub fn entries(config: &Config, output_format: OutputFormat, date_span: DateSpan
 }
 
 fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>) {
-  let mut projects_table = table!(["Customer", "Projects"]);
+  let mut entries_table = table!(["Customer", "Projects"]);
 
   for (customer_name, group) in entries {}
-  projects_table.printstd();
+  entries_table.printstd();
 }
 
 fn print_json(entries: Vec<TimeEntry>) -> Result<(), AppError> {

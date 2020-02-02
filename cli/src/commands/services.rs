@@ -2,7 +2,8 @@ use super::OutputFormat;
 use crate::config::Config;
 use crate::error::AppError;
 use acari_lib::Service;
-use prettytable::{cell, format, row, table};
+use itertools::Itertools;
+use prettytable::{cell, row, table};
 
 pub fn services(config: &Config, output_format: OutputFormat) -> Result<(), AppError> {
   let client = config.client();
@@ -19,7 +20,15 @@ pub fn services(config: &Config, output_format: OutputFormat) -> Result<(), AppE
   Ok(())
 }
 
-fn print_pretty(services: Vec<Service>) {}
+fn print_pretty(services: Vec<Service>) {
+  let service_table = table!(
+    ["Billable services"],
+    [services.iter().filter(|s| s.billable).map(|s| &s.name).join("\n")],
+    ["Not billable services"],
+    [services.iter().filter(|s| !s.billable).map(|s| &s.name).join("\n")]
+  );
+  service_table.printstd();
+}
 
 fn print_json(services: Vec<Service>) -> Result<(), AppError> {
   println!("{}", serde_json::to_string_pretty(&services)?);

@@ -2,7 +2,7 @@ use super::OutputFormat;
 use crate::config::Config;
 use crate::error::AppError;
 use acari_lib::Customer;
-use prettytable::{cell, format, row, table};
+use prettytable::{cell, format, row, Table};
 
 pub fn customers(config: &Config, output_format: OutputFormat) -> Result<(), AppError> {
   let client = config.client();
@@ -19,7 +19,16 @@ pub fn customers(config: &Config, output_format: OutputFormat) -> Result<(), App
   Ok(())
 }
 
-fn print_pretty(customers: Vec<Customer>) {}
+fn print_pretty(customers: Vec<Customer>) {
+  let mut customers_table = Table::new();
+  customers_table.set_titles(row!["Customers"]);
+  customers_table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
+
+  for customer in customers {
+    customers_table.add_row(row![customer.name]);
+  }
+  customers_table.printstd();
+}
 
 fn print_json(customers: Vec<Customer>) -> Result<(), AppError> {
   println!("{}", serde_json::to_string_pretty(&customers)?);
@@ -28,7 +37,7 @@ fn print_json(customers: Vec<Customer>) -> Result<(), AppError> {
 }
 
 fn print_flat(customers: Vec<Customer>) {
-    for customer in customers {
-        println!("{}", customer.name);
-    }
+  for customer in customers {
+    println!("{}", customer.name);
+  }
 }
