@@ -1,12 +1,10 @@
 use super::OutputFormat;
-use crate::config::Config;
 use crate::error::AppError;
-use acari_lib::{Account, User};
+use acari_lib::{Account, Client, User};
 use prettytable::{cell, format, row, table};
 use serde_json::json;
 
-pub fn check(config: &Config, output_format: OutputFormat) -> Result<(), AppError> {
-  let client = config.client();
+pub fn check(client: &dyn Client, output_format: OutputFormat) -> Result<(), AppError> {
   let account = client.get_account()?;
   let user = client.get_myself()?;
 

@@ -1,12 +1,10 @@
 use super::OutputFormat;
-use crate::config::Config;
 use crate::error::AppError;
-use acari_lib::Project;
+use acari_lib::{Client, Project};
 use itertools::Itertools;
 use prettytable::{cell, format, row, Table};
 
-pub fn all_projects(config: &Config, output_format: OutputFormat) -> Result<(), AppError> {
-  let client = config.client();
+pub fn all_projects(client: &dyn Client, output_format: OutputFormat) -> Result<(), AppError> {
   let mut projects = client.get_projects()?;
 
   projects.sort_by(|p1, p2| p1.customer_name.cmp(&p2.customer_name));

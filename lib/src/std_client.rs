@@ -1,6 +1,7 @@
-use crate::model::{MiteEntity, Account, Project, Customer, TimeEntry, User, Service};
-use crate::query::DateSpan;
 use crate::error::AcariError;
+use crate::model::{Account, Customer, MiteEntity, Project, Service, TimeEntry, User};
+use crate::query::DateSpan;
+use crate::Client;
 use serde::de::DeserializeOwned;
 
 use reqwest::{blocking, header, StatusCode};
@@ -8,15 +9,15 @@ use reqwest::{blocking, header, StatusCode};
 const USER_AGENT: &str = "acari-lib (https://github.com/untoldwind/acari)";
 
 #[derive(Debug)]
-pub struct Client {
+pub struct StdClient {
   domain: String,
   token: String,
   client: blocking::Client,
 }
 
-impl Client {
-  pub fn new(domain: &str, token: &str) -> Client {
-    Client {
+impl StdClient {
+  pub fn new(domain: &str, token: &str) -> StdClient {
+    StdClient {
       domain: domain.to_string(),
       token: token.to_string(),
       client: blocking::Client::new(),
@@ -34,22 +35,24 @@ impl Client {
 
     handle_response(response)
   }
+}
 
-  pub fn get_account(&self) -> Result<Account, AcariError> {
+impl Client for StdClient {
+  fn get_account(&self) -> Result<Account, AcariError> {
     match self.get("/account.json")? {
       MiteEntity::Account(account) => Ok(account),
       response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
     }
   }
 
-  pub fn get_myself(&self) -> Result<User, AcariError> {
+  fn get_myself(&self) -> Result<User, AcariError> {
     match self.get("/myself.json")? {
       MiteEntity::User(user) => Ok(user),
       response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
     }
   }
 
-  pub fn get_customers(&self) -> Result<Vec<Customer>, AcariError> {
+  fn get_customers(&self) -> Result<Vec<Customer>, AcariError> {
     Ok(
       self
         .get::<Vec<MiteEntity>>("/customers.json")?
@@ -62,7 +65,7 @@ impl Client {
     )
   }
 
-  pub fn get_projects(&self) -> Result<Vec<Project>, AcariError> {
+  fn get_projects(&self) -> Result<Vec<Project>, AcariError> {
     Ok(
       self
         .get::<Vec<MiteEntity>>("/projects.json")?
@@ -75,7 +78,7 @@ impl Client {
     )
   }
 
-  pub fn get_services(&self) -> Result<Vec<Service>, AcariError> {
+  fn get_services(&self) -> Result<Vec<Service>, AcariError> {
     Ok(
       self
         .get::<Vec<MiteEntity>>("/services.json")?
@@ -88,7 +91,7 @@ impl Client {
     )
   }
 
-  pub fn get_time_entries(&self, date_span: DateSpan) -> Result<Vec<TimeEntry>, AcariError> {
+  fn get_time_entries(&self, date_span: DateSpan) -> Result<Vec<TimeEntry>, AcariError> {
     Ok(
       self
         .get::<Vec<MiteEntity>>(&format!("/time_entries.json?user=current&{}", date_span.query_param()))?

@@ -20,6 +20,7 @@ fn main() -> Result<(), AppError> {
         .value_name("format")
         .help("Output format (pretty, json, flat)"),
     )
+    .arg(Arg::with_name("no-cache").long("no-cache").help("Disable the use of cache files"))
     .subcommand(SubCommand::with_name("init").about("Initialize connection to mite"))
     .subcommand(SubCommand::with_name("check").about("Check connection to mite"))
     .subcommand(SubCommand::with_name("customers").about("List all customers"))
@@ -39,18 +40,21 @@ fn main() -> Result<(), AppError> {
   let output_format = matches.value_of("output").map(OutputFormat::from_string).unwrap_or(Ok(OutputFormat::Pretty))?;
 
   match Config::read()? {
-    Some(config) => match matches.subcommand() {
-      ("init", _) => commands::init(),
-      ("check", _) => commands::check(&config, output_format),
-      ("customers", _) => commands::customers(&config, output_format),
-      ("projects", _) => commands::all_projects(&config, output_format),
-      ("services", _) => commands::services(&config, output_format),
-      ("entries", Some(sub_matches)) => {
-        let span_arg = sub_matches.value_of("span").ok_or(AppError::UserError("Missing <span> argument".to_string()))?;
-        commands::entries(&config, output_format, DateSpan::from_string(span_arg)?)
+    Some(config) => {
+      let client = config.client(!matches.is_present("no-cache"))?;
+      match matches.subcommand() {
+        ("init", _) => commands::init(),
+        ("check", _) => commands::check(client.as_ref(), output_format),
+        ("customers", _) => commands::customers(client.as_ref(), output_format),
+        ("projects", _) => commands::all_projects(client.as_ref(), output_format),
+        ("services", _) => commands::services(client.as_ref(), output_format),
+        ("entries", Some(sub_matches)) => {
+          let span_arg = sub_matches.value_of("span").ok_or(AppError::UserError("Missing <span> argument".to_string()))?;
+          commands::entries(client.as_ref(), output_format, DateSpan::from_string(span_arg)?)
+        }
+        (invalid, _) => Err(AppError::UserError(format!("Unknown command: {}", invalid))),
       }
-      (invalid, _) => Err(AppError::UserError(format!("Unknown command: {}", invalid))),
-    },
+    }
     None => match matches.subcommand() {
       ("init", _) => commands::init(),
       (_, _) => Err(AppError::UserError("Missing configuration, run init first".to_string())),

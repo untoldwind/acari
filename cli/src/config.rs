@@ -1,14 +1,17 @@
 use crate::error::AppError;
-use acari_lib::Client;
+use acari_lib::{CachedClient, Client, StdClient};
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
+use std::time::Duration;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
   pub domain: String,
   pub token: String,
+  #[serde(default = "default_cache_ttl")]
+  pub cache_ttl_minutes: u64,
 }
 
 impl Config {
@@ -25,8 +28,16 @@ impl Config {
     }
   }
 
-  pub fn client(&self) -> Client {
-    Client::new(&self.domain, &self.token)
+  pub fn client(&self, cached: bool) -> Result<Box<dyn Client>, AppError> {
+    if cached {
+      Ok(Box::new(CachedClient::new(
+        &self.domain,
+        &self.token,
+        Duration::from_secs(self.cache_ttl_minutes * 60),
+      )?))
+    } else {
+      Ok(Box::new(StdClient::new(&self.domain, &self.token)))
+    }
   }
 
   pub fn write(&self) -> Result<(), AppError> {
@@ -49,4 +60,8 @@ fn config_file() -> PathBuf {
     .map(|configs| configs.join("acari"))
     .unwrap_or_else(|| home_dir.join(".acari"))
     .join("config.toml")
+}
+
+fn default_cache_ttl() -> u64 {
+  1440
 }

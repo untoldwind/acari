@@ -11,7 +11,12 @@ pub fn init() -> Result<(), AppError> {
   stdout().flush()?;
   let token: String = try_read!("{}\n")?;
 
-  Config { domain, token }.write()?;
+  Config {
+    domain,
+    token,
+    cache_ttl_minutes: 1440,
+  }
+  .write()?;
 
   println!("Configuration updated");
 

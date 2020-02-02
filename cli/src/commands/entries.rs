@@ -1,14 +1,11 @@
 use super::OutputFormat;
-use crate::config::Config;
 use crate::error::AppError;
-use acari_lib::DateSpan;
-use acari_lib::TimeEntry;
+use acari_lib::{Client, DateSpan, TimeEntry};
 use chrono::NaiveDate;
 use itertools::Itertools;
 use prettytable::{cell, row, table};
 
-pub fn entries(config: &Config, output_format: OutputFormat, date_span: DateSpan) -> Result<(), AppError> {
-  let client = config.client();
+pub fn entries(client: &dyn Client, output_format: OutputFormat, date_span: DateSpan) -> Result<(), AppError> {
   let mut time_entries = client.get_time_entries(date_span)?;
 
   time_entries.sort_by(|t1, t2| t1.date_at.cmp(&t2.date_at));

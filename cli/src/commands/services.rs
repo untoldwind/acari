@@ -1,12 +1,10 @@
 use super::OutputFormat;
-use crate::config::Config;
 use crate::error::AppError;
-use acari_lib::Service;
+use acari_lib::{Client, Service};
 use itertools::Itertools;
 use prettytable::{cell, row, table};
 
-pub fn services(config: &Config, output_format: OutputFormat) -> Result<(), AppError> {
-  let client = config.client();
+pub fn services(client: &dyn Client, output_format: OutputFormat) -> Result<(), AppError> {
   let mut services = client.get_services()?;
 
   services.sort_by(|s1, s2| s1.name.cmp(&s2.name));
