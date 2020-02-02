@@ -43,16 +43,8 @@ fn print_flat(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>) {
     for entry in group {
       println!(
         "{}\t{}\t{}\t{}\t{}",
-        date,
-        entry.customer_name,
-        entry.project_name,
-        entry.service_name,
-        render_minutes(entry.minutes)
+        date, entry.customer_name, entry.project_name, entry.service_name, entry.minutes,
       );
     }
   }
-}
-
-fn render_minutes(minutes: u32) -> String {
-  format!("{}:{:02}", minutes / 60, minutes % 60)
 }

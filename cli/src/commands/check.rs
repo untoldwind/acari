@@ -18,7 +18,7 @@ pub fn check(client: &dyn Client, output_format: OutputFormat) -> Result<(), Aca
 
 fn print_pretty(account: Account, user: User) {
   let mut account_table = table!(
-    ["Id", account.id.to_string()],
+    ["Id", account.id],
     ["Name", account.name],
     ["Title", account.title],
     ["Currency", account.currency],

@@ -1,8 +1,11 @@
 use crate::error::AcariError;
-use crate::model::{Account, Customer, MiteEntity, Project, Service, TimeEntry, Tracker, User};
-use crate::query::DateSpan;
+use crate::model::{Account, Customer, MiteEntity, Project, ProjectId, Service, ServiceId, TimeEntry, TimeEntryId, Tracker, User};
+use crate::query::{DateSpan, Day};
 use crate::Client;
+use reqwest::Method;
 use serde::de::DeserializeOwned;
+use serde::ser::Serialize;
+use serde_json::json;
 
 use reqwest::{blocking, header, StatusCode};
 
@@ -24,13 +27,26 @@ impl StdClient {
     }
   }
 
-  fn get<T: DeserializeOwned>(&self, uri: &str) -> Result<T, AcariError> {
+  fn request<T: DeserializeOwned>(&self, method: Method, uri: &str) -> Result<T, AcariError> {
     let response = self
       .client
-      .get(&format!("https://{}{}", self.domain, uri))
+      .request(method, &format!("https://{}{}", self.domain, uri))
       .header(header::USER_AGENT, USER_AGENT)
       .header(header::HOST, &self.domain)
       .header("X-MiteApiKey", &self.token)
+      .send()?;
+
+    handle_response(response)
+  }
+
+  fn request_with_body<T: DeserializeOwned, D: Serialize>(&self, method: Method, uri: &str, data: D) -> Result<T, AcariError> {
+    let response = self
+      .client
+      .request(method, &format!("https://{}{}", self.domain, uri))
+      .header(header::USER_AGENT, USER_AGENT)
+      .header(header::HOST, &self.domain)
+      .header("X-MiteApiKey", &self.token)
+      .json(&data)
       .send()?;
 
     handle_response(response)
@@ -39,14 +55,14 @@ impl StdClient {
 
 impl Client for StdClient {
   fn get_account(&self) -> Result<Account, AcariError> {
-    match self.get("/account.json")? {
+    match self.request(Method::GET, "/account.json")? {
       MiteEntity::Account(account) => Ok(account),
       response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
     }
   }
 
   fn get_myself(&self) -> Result<User, AcariError> {
-    match self.get("/myself.json")? {
+    match self.request(Method::GET, "/myself.json")? {
       MiteEntity::User(user) => Ok(user),
       response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
     }
@@ -55,7 +71,7 @@ impl Client for StdClient {
   fn get_customers(&self) -> Result<Vec<Customer>, AcariError> {
     Ok(
       self
-        .get::<Vec<MiteEntity>>("/customers.json")?
+        .request::<Vec<MiteEntity>>(Method::GET, "/customers.json")?
         .into_iter()
         .filter_map(|entity| match entity {
           MiteEntity::Customer(customer) => Some(customer),
@@ -68,7 +84,7 @@ impl Client for StdClient {
   fn get_projects(&self) -> Result<Vec<Project>, AcariError> {
     Ok(
       self
-        .get::<Vec<MiteEntity>>("/projects.json")?
+        .request::<Vec<MiteEntity>>(Method::GET, "/projects.json")?
         .into_iter()
         .filter_map(|entity| match entity {
           MiteEntity::Project(project) => Some(project),
@@ -81,7 +97,7 @@ impl Client for StdClient {
   fn get_services(&self) -> Result<Vec<Service>, AcariError> {
     Ok(
       self
-        .get::<Vec<MiteEntity>>("/services.json")?
+        .request::<Vec<MiteEntity>>(Method::GET, "/services.json")?
         .into_iter()
         .filter_map(|entity| match entity {
           MiteEntity::Service(service) => Some(service),
@@ -91,8 +107,8 @@ impl Client for StdClient {
     )
   }
 
-  fn get_time_entry(&self, entry_id: u32) -> Result<TimeEntry, AcariError> {
-    match self.get(&format!("/time_entries/{}.json", entry_id))? {
+  fn get_time_entry(&self, entry_id: TimeEntryId) -> Result<TimeEntry, AcariError> {
+    match self.request(Method::GET, &format!("/time_entries/{}.json", entry_id))? {
       MiteEntity::TimeEntry(time_entry) => Ok(time_entry),
       response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
     }
@@ -101,7 +117,7 @@ impl Client for StdClient {
   fn get_time_entries(&self, date_span: DateSpan) -> Result<Vec<TimeEntry>, AcariError> {
     Ok(
       self
-        .get::<Vec<MiteEntity>>(&format!("/time_entries.json?user=current&{}", date_span.query_param()))?
+        .request::<Vec<MiteEntity>>(Method::GET, &format!("/time_entries.json?user=current&{}", date_span.query_param()))?
         .into_iter()
         .filter_map(|entity| match entity {
           MiteEntity::TimeEntry(time_entry) => Some(time_entry),
@@ -111,8 +127,40 @@ impl Client for StdClient {
     )
   }
 
+  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: u32) -> Result<TimeEntry, AcariError> {
+    match self.request_with_body(
+      Method::POST,
+      "/time_entries.json",
+      json!({
+        "time_entry": {
+          "date_at": day.query_param(),
+          "project_id": project_id,
+          "service_id": service_id,
+          "minutes": minutes,
+        }
+      }),
+    )? {
+      MiteEntity::TimeEntry(time_entry) => Ok(time_entry),
+      response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
+    }
+  }
+
   fn get_tracker(&self) -> Result<Tracker, AcariError> {
-    match self.get("/tracker.json")? {
+    match self.request(Method::GET, "/tracker.json")? {
+      MiteEntity::Tracker(tracker) => Ok(tracker),
+      response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
+    }
+  }
+
+  fn create_tracker(&self, entry_id: TimeEntryId) -> Result<Tracker, AcariError> {
+    match self.request(Method::PATCH, &format!("/tracker/{}.json", entry_id))? {
+      MiteEntity::Tracker(tracker) => Ok(tracker),
+      response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
+    }
+  }
+
+  fn delete_tracker(&self, entry_id: TimeEntryId) -> Result<Tracker, AcariError> {
+    match self.request(Method::DELETE, &format!("/tracker/{}.json", entry_id))? {
       MiteEntity::Tracker(tracker) => Ok(tracker),
       response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
     }
@@ -121,7 +169,7 @@ impl Client for StdClient {
 
 fn handle_response<T: DeserializeOwned>(response: blocking::Response) -> Result<T, AcariError> {
   match response.status() {
-    StatusCode::OK => Ok(response.json()?),
+    StatusCode::OK | StatusCode::CREATED => Ok(response.json()?),
     status => match response.json::<MiteEntity>() {
       Ok(MiteEntity::Error(msg)) => Err(AcariError::Mite(status.as_u16(), msg)),
       _ => Err(AcariError::Mite(status.as_u16(), status.to_string())),

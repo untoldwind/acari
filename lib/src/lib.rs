@@ -6,8 +6,10 @@ mod std_client;
 
 pub use cached_client::CachedClient;
 pub use error::AcariError;
-pub use model::{Account, Customer, Project, Service, TimeEntry, Tracker, TrackingTimeEntry, User};
-pub use query::DateSpan;
+pub use model::{
+  Account, AccountId, Customer, CustomerId, Minutes, Project, ProjectId, Service, ServiceId, TimeEntry, TimeEntryId, Tracker, TrackingTimeEntry, User, UserId,
+};
+pub use query::{DateSpan, Day};
 pub use std_client::StdClient;
 
 pub trait Client {
@@ -21,11 +23,17 @@ pub trait Client {
 
   fn get_services(&self) -> Result<Vec<Service>, AcariError>;
 
-  fn get_time_entry(&self, entry_id: u32) -> Result<TimeEntry, AcariError>;
+  fn get_time_entry(&self, entry_id: TimeEntryId) -> Result<TimeEntry, AcariError>;
 
   fn get_time_entries(&self, date_span: DateSpan) -> Result<Vec<TimeEntry>, AcariError>;
 
+  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: u32) -> Result<TimeEntry, AcariError>;
+
   fn get_tracker(&self) -> Result<Tracker, AcariError>;
+
+  fn create_tracker(&self, entry_id: TimeEntryId) -> Result<Tracker, AcariError>;
+
+  fn delete_tracker(&self, entry_id: TimeEntryId) -> Result<Tracker, AcariError>;
 }
 
 #[macro_export]

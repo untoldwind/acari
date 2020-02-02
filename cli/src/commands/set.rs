@@ -1,5 +1,5 @@
 use super::OutputFormat;
-use acari_lib::{AcariError, Client, Tracker};
+use acari_lib::{AcariError, Client, Minutes};
 use prettytable::{cell, format, row, Table};
 
 pub fn set(
@@ -8,7 +8,7 @@ pub fn set(
   customer_name: &str,
   project_name: &str,
   service_name: &str,
-  minutes: u32,
+  minutes: Minutes,
 ) -> Result<(), AcariError> {
   Ok(())
 }

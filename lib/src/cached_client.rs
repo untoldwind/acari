@@ -1,6 +1,6 @@
 use crate::error::AcariError;
-use crate::model::{Account, Customer, Project, Service, TimeEntry, Tracker, User};
-use crate::query::DateSpan;
+use crate::model::{Account, Customer, Project, ProjectId, Service, ServiceId, TimeEntry, TimeEntryId, Tracker, User};
+use crate::query::{DateSpan, Day};
 use crate::std_client::StdClient;
 use crate::Client;
 use serde::de::DeserializeOwned;
@@ -81,7 +81,7 @@ impl Client for CachedClient {
     self.cache_data("services.json", || self.client.get_services())
   }
 
-  fn get_time_entry(&self, entry_id: u32) -> Result<TimeEntry, AcariError> {
+  fn get_time_entry(&self, entry_id: TimeEntryId) -> Result<TimeEntry, AcariError> {
     self.client.get_time_entry(entry_id) // This should not be cached
   }
 
@@ -89,8 +89,20 @@ impl Client for CachedClient {
     self.client.get_time_entries(date_span) // This should not be cached
   }
 
+  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: u32) -> Result<TimeEntry, AcariError> {
+    self.client.create_time_entry(day, project_id, service_id, minutes)
+  }
+
   fn get_tracker(&self) -> Result<Tracker, AcariError> {
     self.client.get_tracker() // This should not be cached
+  }
+
+  fn create_tracker(&self, entry_id: TimeEntryId) -> Result<Tracker, AcariError> {
+    self.client.create_tracker(entry_id)
+  }
+
+  fn delete_tracker(&self, entry_id: TimeEntryId) -> Result<Tracker, AcariError> {
+    self.client.delete_tracker(entry_id)
   }
 }
 

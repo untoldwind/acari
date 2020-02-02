@@ -1,4 +1,4 @@
-use acari_lib::{user_error, AcariError, DateSpan};
+use acari_lib::{user_error, AcariError, DateSpan, Minutes};
 use clap::{App, Arg, ArgMatches, SubCommand};
 
 mod commands;
@@ -82,7 +82,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           let customer = required_arg(sub_matches, "customer")?;
           let project = required_arg(sub_matches, "project")?;
           let service = required_arg(sub_matches, "service")?;
-          let time = parse_minutes(required_arg(sub_matches, "time")?)?;
+          let time = Minutes::from_string(required_arg(sub_matches, "time")?)?;
 
           commands::set(client.as_ref(), output_format, customer, project, service, time)?;
         }
@@ -92,7 +92,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           let service = required_arg(sub_matches, "service")?;
           let offset = minutes_arg(sub_matches, "offset")?;
 
-          commands::start(client.as_ref(), output_format, customer, project, service, offset.unwrap_or(0))?;
+          commands::start(client.as_ref(), output_format, customer, project, service, offset)?;
         }
         ("stop", _) => commands::stop(client.as_ref(), output_format)?,
         ("tracking", _) => commands::tracking(client.as_ref(), output_format)?,
@@ -112,21 +112,9 @@ fn required_arg<'a>(matches: &'a ArgMatches, name: &str) -> Result<&'a str, Acar
   matches.value_of(name).ok_or_else(|| user_error!("Missing <{}> argument", name))
 }
 
-fn minutes_arg(matches: &ArgMatches, name: &str) -> Result<Option<u32>, AcariError> {
+fn minutes_arg(matches: &ArgMatches, name: &str) -> Result<Option<Minutes>, AcariError> {
   match matches.value_of(name) {
-    Some(value) => parse_minutes(value).map(Some),
+    Some(value) => Minutes::from_string(value).map(Some),
     None => Ok(None),
-  }
-}
-
-fn parse_minutes(expr: &str) -> Result<u32, AcariError> {
-  match expr.find(":") {
-    Some(idx) => {
-      let hours = expr[..idx].parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?;
-      let minutes = expr[idx + 1..].parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?;
-
-      Ok(hours * 60 + minutes)
-    }
-    None => expr.parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e)),
   }
 }
