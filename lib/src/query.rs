@@ -13,7 +13,7 @@ impl Day {
     match day.to_lowercase().as_str() {
       "today" | "now" => Ok(Day::Today),
       "yesterday" => Ok(Day::Yesterday),
-      date => Ok(Day::Date(NaiveDate::parse_from_str(date, "%Y-%m-%d")?))
+      date => Ok(Day::Date(NaiveDate::parse_from_str(date, "%Y-%m-%d")?)),
     }
   }
 

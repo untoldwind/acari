@@ -21,5 +21,23 @@ pub trait Client {
 
   fn get_services(&self) -> Result<Vec<Service>, AcariError>;
 
+  fn get_time_entry(&self, entry_id: u32) -> Result<TimeEntry, AcariError>;
+
   fn get_time_entries(&self, date_span: DateSpan) -> Result<Vec<TimeEntry>, AcariError>;
+
+  fn get_tracker(&self) -> Result<Tracker, AcariError>;
+}
+
+#[macro_export]
+macro_rules! user_error {
+  ( $( $arg:expr ),* ) => {
+    AcariError::UserError(format!($($arg),*))
+  }
+}
+
+#[macro_export]
+macro_rules! internal_error {
+  ( $( $arg:expr ),* ) => {
+    AcariError::InternalError(format!($($arg),*))
+  }
 }

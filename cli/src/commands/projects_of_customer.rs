@@ -2,7 +2,7 @@ use super::OutputFormat;
 use acari_lib::{AcariError, Client, Project};
 use prettytable::{cell, format, row, Table};
 
-pub fn projects_of_customer(client: &dyn Client, customer_name: &str, output_format: OutputFormat) -> Result<(), AcariError> {
+pub fn projects_of_customer(client: &dyn Client, output_format: OutputFormat, customer_name: &str) -> Result<(), AcariError> {
   let mut projects = client.get_projects()?;
 
   projects.retain(|p| p.customer_name == customer_name);

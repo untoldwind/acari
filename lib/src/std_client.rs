@@ -1,5 +1,5 @@
 use crate::error::AcariError;
-use crate::model::{Account, Customer, MiteEntity, Project, Service, TimeEntry, User};
+use crate::model::{Account, Customer, MiteEntity, Project, Service, TimeEntry, Tracker, User};
 use crate::query::DateSpan;
 use crate::Client;
 use serde::de::DeserializeOwned;
@@ -91,6 +91,13 @@ impl Client for StdClient {
     )
   }
 
+  fn get_time_entry(&self, entry_id: u32) -> Result<TimeEntry, AcariError> {
+    match self.get(&format!("/time_entries/{}.json", entry_id))? {
+      MiteEntity::TimeEntry(time_entry) => Ok(time_entry),
+      response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
+    }
+  }
+
   fn get_time_entries(&self, date_span: DateSpan) -> Result<Vec<TimeEntry>, AcariError> {
     Ok(
       self
@@ -102,6 +109,13 @@ impl Client for StdClient {
         })
         .collect(),
     )
+  }
+
+  fn get_tracker(&self) -> Result<Tracker, AcariError> {
+    match self.get("/tracker.json")? {
+      MiteEntity::Tracker(tracker) => Ok(tracker),
+      response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
+    }
   }
 }
 

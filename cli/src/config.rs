@@ -1,4 +1,4 @@
-use acari_lib::{AcariError, CachedClient, Client, StdClient};
+use acari_lib::{internal_error, AcariError, CachedClient, Client, StdClient};
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
@@ -46,7 +46,7 @@ impl Config {
     fs::create_dir_all(
       &config_file
         .parent()
-        .ok_or_else(|| AcariError::InternalError("Invalid config path".to_string()))?,
+        .ok_or_else(|| internal_error!("Invalid config path: {}", config_file.to_string_lossy()))?,
     )?;
 
     let mut file = File::create(&config_file)?;

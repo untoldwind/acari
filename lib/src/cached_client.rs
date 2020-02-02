@@ -1,5 +1,5 @@
 use crate::error::AcariError;
-use crate::model::{Account, Customer, Project, Service, TimeEntry, User};
+use crate::model::{Account, Customer, Project, Service, TimeEntry, Tracker, User};
 use crate::query::DateSpan;
 use crate::std_client::StdClient;
 use crate::Client;
@@ -81,8 +81,16 @@ impl Client for CachedClient {
     self.cache_data("services.json", || self.client.get_services())
   }
 
+  fn get_time_entry(&self, entry_id: u32) -> Result<TimeEntry, AcariError> {
+    self.client.get_time_entry(entry_id) // This should not be cached
+  }
+
   fn get_time_entries(&self, date_span: DateSpan) -> Result<Vec<TimeEntry>, AcariError> {
     self.client.get_time_entries(date_span) // This should not be cached
+  }
+
+  fn get_tracker(&self) -> Result<Tracker, AcariError> {
+    self.client.get_tracker() // This should not be cached
   }
 }
 

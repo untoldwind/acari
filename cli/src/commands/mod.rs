@@ -6,6 +6,10 @@ mod entries;
 mod init;
 mod projects_of_customer;
 mod services;
+mod set;
+mod start;
+mod stop;
+mod tracking;
 
 pub use all_projects::*;
 pub use check::*;
@@ -15,6 +19,10 @@ pub use entries::*;
 pub use init::*;
 pub use projects_of_customer::*;
 pub use services::*;
+pub use set::*;
+pub use start::*;
+pub use stop::*;
+pub use tracking::*;
 
 use acari_lib::AcariError;
 
