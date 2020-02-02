@@ -2,6 +2,31 @@ use crate::error::AcariError;
 use chrono::NaiveDate;
 
 #[derive(Debug)]
+pub enum Day {
+  Today,
+  Yesterday,
+  Date(NaiveDate),
+}
+
+impl Day {
+  pub fn from_string(day: &str) -> Result<Day, AcariError> {
+    match day.to_lowercase().as_str() {
+      "today" | "now" => Ok(Day::Today),
+      "yesterday" => Ok(Day::Yesterday),
+      date => Ok(Day::Date(NaiveDate::parse_from_str(date, "%Y-%m-%d")?))
+    }
+  }
+
+  pub fn query_param(&self) -> String {
+    match self {
+      Day::Today => "today".to_string(),
+      Day::Yesterday => "yesterday".to_string(),
+      Day::Date(date) => format!("{}", date),
+    }
+  }
+}
+
+#[derive(Debug)]
 pub enum DateSpan {
   Today,
   Yesterday,
