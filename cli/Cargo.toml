@@ -17,3 +17,8 @@ prettytable-rs = "0"
 itertools = "0"
 chrono = { version = "0.4", features = ["serde"] }
 acari-lib = { path = "../lib" }
+
+
+[[bin]]
+name = "acari"
+path = "src/main.rs"

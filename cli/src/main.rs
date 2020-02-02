@@ -21,6 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .arg(Arg::with_name("no-cache").long("no-cache").help("Disable the use of cache files"))
     .subcommand(SubCommand::with_name("init").about("Initialize connection to mite"))
     .subcommand(SubCommand::with_name("check").about("Check connection to mite"))
+    .subcommand(SubCommand::with_name("clear-cache").about("Clear the local cache"))
     .subcommand(SubCommand::with_name("customers").about("List all customers"))
     .subcommand(
       SubCommand::with_name("projects")
@@ -47,6 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       match matches.subcommand() {
         ("init", _) => commands::init()?,
         ("check", _) => commands::check(client.as_ref(), output_format)?,
+        ("clear-cache", _) => commands::clear_cache()?,
         ("customers", _) => commands::customers(client.as_ref(), output_format)?,
         ("projects", Some(sub_matches)) => match sub_matches.value_of("customer") {
           Some(customer) => commands::projects_of_customer(client.as_ref(), customer, output_format)?,

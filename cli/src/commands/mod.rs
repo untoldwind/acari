@@ -1,5 +1,6 @@
 mod all_projects;
 mod check;
+mod clear_cache;
 mod customers;
 mod entries;
 mod init;
@@ -8,6 +9,7 @@ mod services;
 
 pub use all_projects::*;
 pub use check::*;
+pub use clear_cache::*;
 pub use customers::*;
 pub use entries::*;
 pub use init::*;

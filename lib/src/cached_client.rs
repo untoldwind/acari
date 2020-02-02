@@ -30,6 +30,14 @@ impl CachedClient {
     })
   }
 
+  pub fn clear_cache() -> Result<(), AcariError> {
+    let cache_dir = cache_dir();
+
+    fs::remove_dir_all(cache_dir)?;
+
+    Ok(())
+  }
+
   fn cache_data<T, F>(&self, cache_name: &str, fetch_data: F) -> Result<T, AcariError>
   where
     T: DeserializeOwned + Serialize,
