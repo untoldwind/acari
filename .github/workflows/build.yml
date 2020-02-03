@@ -1,0 +1,15 @@
+name: Rust
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Chack formatting
+      run: cargo fmt -- --check
+    - name: Check clippy
+      run: cargo clippy -- -Dwarnings
+    - name: Build
+      run: cargo build --release
+    - name: Test
+      run: cargo test --release
