@@ -27,7 +27,7 @@ pub trait Client {
 
   fn get_time_entries(&self, date_span: DateSpan) -> Result<Vec<TimeEntry>, AcariError>;
 
-  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: u32) -> Result<TimeEntry, AcariError>;
+  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: Minutes) -> Result<TimeEntry, AcariError>;
 
   fn get_tracker(&self) -> Result<Tracker, AcariError>;
 

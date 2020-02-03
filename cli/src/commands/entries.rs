@@ -1,8 +1,8 @@
 use super::OutputFormat;
-use acari_lib::{AcariError, Client, DateSpan, TimeEntry};
+use acari_lib::{AcariError, Client, DateSpan, Minutes, TimeEntry};
 use chrono::NaiveDate;
 use itertools::Itertools;
-use prettytable::{cell, row, table};
+use prettytable::{cell, format, row, Table};
 
 pub fn entries(client: &dyn Client, output_format: OutputFormat, date_span: DateSpan) -> Result<(), AcariError> {
   let mut time_entries = client.get_time_entries(date_span)?;
@@ -26,9 +26,17 @@ pub fn entries(client: &dyn Client, output_format: OutputFormat, date_span: Date
 }
 
 fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>) {
-  let mut entries_table = table!(["Customer", "Projects"]);
+  let mut entries_table = Table::new();
+  entries_table.set_titles(row!["Day", "Time", "Customer", "Project", "Service"]);
+  entries_table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
 
-  for (customer_name, group) in entries {}
+  for (day, group) in entries {
+    let sum = group.iter().map(|e| e.minutes).sum::<Minutes>();
+    entries_table.add_row(row![day, sum, H3 -> " " ]);
+    for entry in group {
+      entries_table.add_row(row!["", entry.minutes, entry.customer_name, entry.project_name, entry.service_name]);
+    }
+  }
   entries_table.printstd();
 }
 

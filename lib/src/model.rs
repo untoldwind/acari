@@ -3,6 +3,7 @@ use crate::user_error;
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
 use std::fmt;
+use std::ops;
 
 macro_rules! id_wrapper {
   ($name: ident) => {
@@ -86,7 +87,7 @@ pub struct Service {
   pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy, Default)]
 pub struct Minutes(u32);
 
 impl Minutes {
@@ -106,6 +107,19 @@ impl Minutes {
 impl fmt::Display for Minutes {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}:{:02}", self.0 / 60, self.0 % 60)
+  }
+}
+
+impl ops::Add for Minutes {
+  type Output = Minutes;
+  fn add(self, rhs: Minutes) -> Self::Output {
+    Minutes(self.0 + rhs.0)
+  }
+}
+
+impl std::iter::Sum<Minutes> for Minutes {
+  fn sum<I: Iterator<Item = Minutes>>(iter: I) -> Self {
+    Minutes(iter.map(|m| m.0).sum())
   }
 }
 
@@ -130,14 +144,14 @@ pub struct TimeEntry {
   pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TrackingTimeEntry {
-  pub id: u32,
-  pub minutes: u32,
+  pub id: TimeEntryId,
+  pub minutes: Minutes,
   pub since: Option<DateTime<Utc>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Tracker {
   pub tracking_time_entry: Option<TrackingTimeEntry>,
   pub stopped_time_entry: Option<TrackingTimeEntry>,

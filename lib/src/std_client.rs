@@ -1,5 +1,5 @@
 use crate::error::AcariError;
-use crate::model::{Account, Customer, MiteEntity, Project, ProjectId, Service, ServiceId, TimeEntry, TimeEntryId, Tracker, User};
+use crate::model::{Account, Customer, Minutes, MiteEntity, Project, ProjectId, Service, ServiceId, TimeEntry, TimeEntryId, Tracker, User};
 use crate::query::{DateSpan, Day};
 use crate::Client;
 use reqwest::Method;
@@ -127,7 +127,7 @@ impl Client for StdClient {
     )
   }
 
-  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: u32) -> Result<TimeEntry, AcariError> {
+  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: Minutes) -> Result<TimeEntry, AcariError> {
     match self.request_with_body(
       Method::POST,
       "/time_entries.json",

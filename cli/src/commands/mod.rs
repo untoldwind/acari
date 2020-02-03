@@ -7,9 +7,7 @@ mod init;
 mod projects_of_customer;
 mod services;
 mod set;
-mod start;
-mod stop;
-mod tracking;
+mod tracker;
 
 pub use all_projects::*;
 pub use check::*;
@@ -20,9 +18,7 @@ pub use init::*;
 pub use projects_of_customer::*;
 pub use services::*;
 pub use set::*;
-pub use start::*;
-pub use stop::*;
-pub use tracking::*;
+pub use tracker::*;
 
 use acari_lib::{user_error, AcariError, Client, Customer, CustomerId, Project, Service};
 

@@ -1,5 +1,5 @@
 use crate::error::AcariError;
-use crate::model::{Account, Customer, Project, ProjectId, Service, ServiceId, TimeEntry, TimeEntryId, Tracker, User};
+use crate::model::{Account, Customer, Minutes, Project, ProjectId, Service, ServiceId, TimeEntry, TimeEntryId, Tracker, User};
 use crate::query::{DateSpan, Day};
 use crate::std_client::StdClient;
 use crate::Client;
@@ -89,7 +89,7 @@ impl Client for CachedClient {
     self.client.get_time_entries(date_span) // This should not be cached
   }
 
-  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: u32) -> Result<TimeEntry, AcariError> {
+  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: Minutes) -> Result<TimeEntry, AcariError> {
     self.client.create_time_entry(day, project_id, service_id, minutes)
   }
 
