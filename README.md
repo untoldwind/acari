@@ -74,3 +74,74 @@ If you think that something is missing you can try running the above commands wi
 acari clear-cache
 ```
 or simple erase the `~/.cache/acari` directory.
+
+### Query time entries
+
+```
+acari entries <timespan>
+```
+
+Whereas `timespan` can be
+* `today` or `now`: Just today
+* `yeasterday`: Just yesterday
+* `this-week` or `week`: All entries of this week
+* `last-week`: all entries of last week
+* `this-month` or `month`: all entries of this month
+* `last-month`: all entries of last month
+* `YYYY-MM-DD`: entries of a specific day
+* `YYYY-MM-DD|YYYY-MM-DD`: all entries from a specific day up to another day
+
+### Tracking time
+
+Start time-tracking
+```
+acari start <customer-name> <project-name> <service-name>
+```
+optionally you can also add a starting offset
+```
+acari start <customer-name> <project-name> <service-name> <minutes>
+```
+whereas minutes are either actual minutes or in the form of `hh:mm`.
+
+Stop time-tracking
+```
+acari stop
+```
+
+Show current time tracking
+```
+acari tracking
+```
+(Note: This might change, have not found a good naming yet)
+
+### Modify time entries
+
+Chance an entry for today
+```
+acari set <customer-name> <project-name> <service-name> <minutes>
+```
+whereas minutes are either actual minutes or in the form of `hh:mm`.
+
+Chany an entry for a specific day
+```
+acari set <customer-name> <project-name> <service-name> <minutes> <date>
+```
+
+Whereas `date` can be
+* `today` or `now`: Change today
+* `yeasterday`: Change yeasterday
+* `YYYY-MM-DD`: Change a specific day
+
+**Note**: If the specified day contains multiple entries for the same cuatomer, project and service these will be squisched down to a single entry. The idea of the set command is to just set the time spend on a task for the day entirely.
+
+### Modify the output
+
+The output of all commandy can be modified via the `--output` or `-o` option. E.g.
+```
+acari --output=json customers
+```
+
+Supported output formats are:
+* `pretty`: Show pretty tables (this is the default)
+* `json`: Dump all available information as json
+* `flat`: Very condensed form of `pretty` that may be helpful processing information in shell-scripts or `awk`

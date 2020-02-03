@@ -93,6 +93,14 @@ impl Client for CachedClient {
     self.client.create_time_entry(day, project_id, service_id, minutes)
   }
 
+  fn update_time_entry(&self, entry_id: TimeEntryId, minutes: Minutes) -> Result<(), AcariError> {
+    self.client.update_time_entry(entry_id, minutes)
+  }
+
+  fn delete_time_entry(&self, entry_id: TimeEntryId) -> Result<(), AcariError> {
+    self.client.delete_time_entry(entry_id)
+  }
+
   fn get_tracker(&self) -> Result<Tracker, AcariError> {
     self.client.get_tracker() // This should not be cached
   }

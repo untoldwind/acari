@@ -29,6 +29,10 @@ pub trait Client {
 
   fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: Minutes) -> Result<TimeEntry, AcariError>;
 
+  fn update_time_entry(&self, entry_id: TimeEntryId, minutes: Minutes) -> Result<(), AcariError>;
+
+  fn delete_time_entry(&self, entry_id: TimeEntryId) -> Result<(), AcariError>;
+
   fn get_tracker(&self) -> Result<Tracker, AcariError>;
 
   fn create_tracker(&self, entry_id: TimeEntryId) -> Result<Tracker, AcariError>;

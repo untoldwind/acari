@@ -1,6 +1,6 @@
 use super::OutputFormat;
 use super::{find_customer, find_project, find_service};
-use acari_lib::{AcariError, Client, DateSpan, Day, Minutes, TimeEntry, Tracker};
+use acari_lib::{AcariError, Client, Day, Minutes, TimeEntry, Tracker};
 use prettytable::{cell, format, row, table};
 use serde_json::json;
 
@@ -19,7 +19,7 @@ pub fn start(
   let maybe_existing = match minutes_offset {
     Some(_) => None,
     None => client
-      .get_time_entries(DateSpan::Today)?
+      .get_time_entries(Day::Today.into())?
       .into_iter()
       .find(|e| e.customer_id == customer.id && e.project_id == project.id && e.service_id == service.id),
   };

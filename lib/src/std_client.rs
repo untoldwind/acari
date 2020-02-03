@@ -27,29 +27,37 @@ impl StdClient {
     }
   }
 
-  fn request<T: DeserializeOwned>(&self, method: Method, uri: &str) -> Result<T, AcariError> {
-    let response = self
+  fn base_request(&self, method: Method, uri: &str) -> blocking::RequestBuilder {
+    self
       .client
       .request(method, &format!("https://{}{}", self.domain, uri))
       .header(header::USER_AGENT, USER_AGENT)
       .header(header::HOST, &self.domain)
       .header("X-MiteApiKey", &self.token)
-      .send()?;
+  }
+
+  fn request<T: DeserializeOwned>(&self, method: Method, uri: &str) -> Result<T, AcariError> {
+    let response = self.base_request(method, uri).send()?;
 
     handle_response(response)
   }
 
+  fn request_empty(&self, method: Method, uri: &str) -> Result<(), AcariError> {
+    let response = self.base_request(method, uri).send()?;
+
+    handle_empty_response(response)
+  }
+
   fn request_with_body<T: DeserializeOwned, D: Serialize>(&self, method: Method, uri: &str, data: D) -> Result<T, AcariError> {
-    let response = self
-      .client
-      .request(method, &format!("https://{}{}", self.domain, uri))
-      .header(header::USER_AGENT, USER_AGENT)
-      .header(header::HOST, &self.domain)
-      .header("X-MiteApiKey", &self.token)
-      .json(&data)
-      .send()?;
+    let response = self.base_request(method, uri).json(&data).send()?;
 
     handle_response(response)
+  }
+
+  fn request_empty_with_body<D: Serialize>(&self, method: Method, uri: &str, data: D) -> Result<(), AcariError> {
+    let response = self.base_request(method, uri).json(&data).send()?;
+
+    handle_empty_response(response)
   }
 }
 
@@ -133,7 +141,7 @@ impl Client for StdClient {
       "/time_entries.json",
       json!({
         "time_entry": {
-          "date_at": day.query_param(),
+          "date_at": day.as_iso_date(),
           "project_id": project_id,
           "service_id": service_id,
           "minutes": minutes,
@@ -143,6 +151,22 @@ impl Client for StdClient {
       MiteEntity::TimeEntry(time_entry) => Ok(time_entry),
       response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
     }
+  }
+
+  fn update_time_entry(&self, entry_id: TimeEntryId, minutes: Minutes) -> Result<(), AcariError> {
+    self.request_empty_with_body(
+      Method::PATCH,
+      &format!("/time_entries/{}.json", entry_id),
+      json!({
+        "time_entry": {
+          "minutes": minutes,
+        }
+      }),
+    )
+  }
+
+  fn delete_time_entry(&self, entry_id: TimeEntryId) -> Result<(), AcariError> {
+    self.request_empty(Method::DELETE, &format!("/time_entries/{}.json", entry_id))
   }
 
   fn get_tracker(&self) -> Result<Tracker, AcariError> {
@@ -164,6 +188,16 @@ impl Client for StdClient {
       MiteEntity::Tracker(tracker) => Ok(tracker),
       response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
     }
+  }
+}
+
+fn handle_empty_response(response: blocking::Response) -> Result<(), AcariError> {
+  match response.status() {
+    StatusCode::OK | StatusCode::CREATED => Ok(()),
+    status => match response.json::<MiteEntity>() {
+      Ok(MiteEntity::Error(msg)) => Err(AcariError::Mite(status.as_u16(), msg)),
+      _ => Err(AcariError::Mite(status.as_u16(), status.to_string())),
+    },
   }
 }
 

@@ -1,5 +1,6 @@
-use acari_lib::{user_error, AcariError, DateSpan, Minutes};
+use acari_lib::{user_error, AcariError, DateSpan, Day, Minutes};
 use clap::{App, Arg, ArgMatches, SubCommand};
+use std::convert::TryFrom;
 
 mod commands;
 mod config;
@@ -44,6 +45,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .arg(Arg::with_name("project").required(true).help("Project name"))
         .arg(Arg::with_name("service").required(true).help("Service name"))
         .arg(Arg::with_name("time").required(true).help("Time (minutes or hh:mm)"))
+        .arg(Arg::with_name("date").help("Optional: Date (default: today)"))
         .about("Start tracking time"),
     )
     .subcommand(
@@ -71,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ("customers", _) => commands::customers(client.as_ref(), output_format)?,
         ("entries", Some(sub_matches)) => {
           let span = required_arg(sub_matches, "span")?;
-          commands::entries(client.as_ref(), output_format, DateSpan::from_string(span)?)?;
+          commands::entries(client.as_ref(), output_format, DateSpan::try_from(span)?)?;
         }
         ("projects", Some(sub_matches)) => match sub_matches.value_of("customer") {
           Some(customer) => commands::projects_of_customer(client.as_ref(), output_format, customer)?,
@@ -82,26 +84,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           let customer = required_arg(sub_matches, "customer")?;
           let project = required_arg(sub_matches, "project")?;
           let service = required_arg(sub_matches, "service")?;
-          let time = Minutes::from_string(required_arg(sub_matches, "time")?)?;
+          let time = Minutes::try_from(required_arg(sub_matches, "time")?)?;
+          let maybe_day = sub_matches.value_of("date").map(Day::try_from).transpose()?;
 
-          commands::set(client.as_ref(), output_format, customer, project, service, time)?;
+          commands::set(client.as_ref(), output_format, customer, project, service, time, maybe_day)?;
         }
         ("start", Some(sub_matches)) => {
           let customer = required_arg(sub_matches, "customer")?;
           let project = required_arg(sub_matches, "project")?;
           let service = required_arg(sub_matches, "service")?;
-          let offset = minutes_arg(sub_matches, "offset")?;
+          let maybe_offset = sub_matches.value_of("offset").map(Minutes::try_from).transpose()?;
 
-          commands::start(client.as_ref(), output_format, customer, project, service, offset)?;
+          commands::start(client.as_ref(), output_format, customer, project, service, maybe_offset)?;
         }
         ("stop", _) => commands::stop(client.as_ref(), output_format)?,
         ("tracking", _) => commands::tracking(client.as_ref(), output_format)?,
-        (invalid, _) => Err(AcariError::UserError(format!("Unknown command: {}", invalid)))?,
+        (invalid, _) => return Err(AcariError::UserError(format!("Unknown command: {}", invalid)).into()),
       }
     }
     None => match matches.subcommand() {
       ("init", _) => commands::init()?,
-      (_, _) => Err(AcariError::UserError("Missing configuration, run init first".to_string()))?,
+      (_, _) => return Err(AcariError::UserError("Missing configuration, run init first".to_string()).into()),
     },
   }
 
@@ -110,11 +113,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn required_arg<'a>(matches: &'a ArgMatches, name: &str) -> Result<&'a str, AcariError> {
   matches.value_of(name).ok_or_else(|| user_error!("Missing <{}> argument", name))
-}
-
-fn minutes_arg(matches: &ArgMatches, name: &str) -> Result<Option<Minutes>, AcariError> {
-  match matches.value_of(name) {
-    Some(value) => Minutes::from_string(value).map(Some),
-    None => Ok(None),
-  }
 }

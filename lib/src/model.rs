@@ -2,6 +2,7 @@ use crate::error::AcariError;
 use crate::user_error;
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
+use std::convert::TryFrom;
 use std::fmt;
 use std::ops;
 
@@ -90,20 +91,6 @@ pub struct Service {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy, Default)]
 pub struct Minutes(u32);
 
-impl Minutes {
-  pub fn from_string(expr: &str) -> Result<Minutes, AcariError> {
-    match expr.find(":") {
-      Some(idx) => {
-        let hours = expr[..idx].parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?;
-        let minutes = expr[idx + 1..].parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?;
-
-        Ok(Minutes(hours * 60 + minutes))
-      }
-      None => Ok(Minutes(expr.parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?)),
-    }
-  }
-}
-
 impl fmt::Display for Minutes {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "{}:{:02}", self.0 / 60, self.0 % 60)
@@ -120,6 +107,22 @@ impl ops::Add for Minutes {
 impl std::iter::Sum<Minutes> for Minutes {
   fn sum<I: Iterator<Item = Minutes>>(iter: I) -> Self {
     Minutes(iter.map(|m| m.0).sum())
+  }
+}
+
+impl TryFrom<&str> for Minutes {
+  type Error = AcariError;
+
+  fn try_from(value: &str) -> Result<Self, Self::Error> {
+    match value.find(':') {
+      Some(idx) => {
+        let hours = value[..idx].parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?;
+        let minutes = value[idx + 1..].parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?;
+
+        Ok(Minutes(hours * 60 + minutes))
+      }
+      None => Ok(Minutes(value.parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?)),
+    }
   }
 }
 
