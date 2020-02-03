@@ -89,7 +89,7 @@ Whereas `timespan` can be
 * `this-month` or `month`: all entries of this month
 * `last-month`: all entries of last month
 * `YYYY-MM-DD`: entries of a specific day
-* `YYYY-MM-DD|YYYY-MM-DD`: all entries from a specific day up to another day
+* `YYYY-MM-DD/YYYY-MM-DD`: all entries from a specific day up to another day
 
 ### Tracking time
 

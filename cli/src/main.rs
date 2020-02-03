@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .arg(
           Arg::with_name("span")
             .required(true)
-            .help("Date span to query\n(today, yesterday, this-week, last-week,\n this-month, last-month, yyyy-mm-dd, yyyy-mm-dd|yyyy-mm-dd)"),
+            .help("Date span to query\n(today, yesterday, this-week, last-week,\n this-month, last-month, yyyy-mm-dd, yyyy-mm-dd/yyyy-mm-dd)"),
         )
         .about("Query time entries"),
     )

@@ -89,7 +89,7 @@ pub struct Service {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy, Default)]
-pub struct Minutes(u32);
+pub struct Minutes(pub u32);
 
 impl fmt::Display for Minutes {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -147,7 +147,7 @@ pub struct TimeEntry {
   pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct TrackingTimeEntry {
   pub id: TimeEntryId,
   pub minutes: Minutes,

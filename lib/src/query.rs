@@ -71,7 +71,7 @@ impl TryFrom<&str> for DateSpan {
       "last-week" => Ok(DateSpan::LastWeek),
       "this-month" | "month" => Ok(DateSpan::ThisMonth),
       "last-month" => Ok(DateSpan::LastMonth),
-      date_or_range => match date_or_range.find('|') {
+      date_or_range => match date_or_range.find('/') {
         Some(idx) => Ok(DateSpan::FromTo(
           NaiveDate::parse_from_str(&date_or_range[..idx], "%Y-%m-%d")?,
           NaiveDate::parse_from_str(&date_or_range[idx + 1..], "%Y-%m-%d")?,
