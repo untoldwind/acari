@@ -9,6 +9,7 @@ pub enum AcariError {
   DateFormat(chrono::format::ParseError),
   Request(reqwest::Error),
   Json(serde_json::Error),
+  Url(url::ParseError),
   Mite(u16, String),
   UserError(String),
   InternalError(String),
@@ -22,6 +23,7 @@ impl fmt::Display for AcariError {
       AcariError::DateFormat(err) => write!(f, "Date format error: {}", err),
       AcariError::Request(err) => write!(f, "Request error: {}", err),
       AcariError::Json(err) => write!(f, "Json error: {}", err),
+      AcariError::Url(err) => write!(f, "Url error: {}", err),
       AcariError::Mite(status, error) => write!(f, "Mite error ({}): {}", status, error),
       AcariError::UserError(s) => write!(f, "User error: {}", s),
       AcariError::InternalError(s) => write!(f, "Internal error: {}", s),
@@ -55,5 +57,6 @@ macro_rules! acari_error_from {
 acari_error_from!(io::Error, IO);
 acari_error_from!(std::time::SystemTimeError, Time);
 acari_error_from!(serde_json::Error, Json);
+acari_error_from!(url::ParseError, Url);
 acari_error_from!(chrono::format::ParseError, DateFormat);
 acari_error_from!(reqwest::Error, Request);

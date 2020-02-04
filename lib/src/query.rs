@@ -1,6 +1,6 @@
 use crate::error::AcariError;
 use chrono::{Local, NaiveDate};
-use std::convert::TryFrom;
+use std::str::FromStr;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Day {
@@ -27,11 +27,11 @@ impl Day {
   }
 }
 
-impl TryFrom<&str> for Day {
-  type Error = AcariError;
+impl FromStr for Day {
+  type Err = AcariError;
 
-  fn try_from(value: &str) -> Result<Self, Self::Error> {
-    match value.to_lowercase().as_str() {
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s.to_lowercase().as_str() {
       "today" | "now" => Ok(Day::Today),
       "yesterday" => Ok(Day::Yesterday),
       date => Ok(Day::Date(NaiveDate::parse_from_str(date, "%Y-%m-%d")?)),
@@ -68,11 +68,11 @@ impl DateSpan {
   }
 }
 
-impl TryFrom<&str> for DateSpan {
-  type Error = AcariError;
+impl FromStr for DateSpan {
+  type Err = AcariError;
 
-  fn try_from(value: &str) -> Result<Self, Self::Error> {
-    match value.to_lowercase().as_str() {
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s.to_lowercase().as_str() {
       "this-week" | "week" => Ok(DateSpan::ThisWeek),
       "last-week" => Ok(DateSpan::LastWeek),
       "this-month" | "month" => Ok(DateSpan::ThisMonth),
@@ -82,7 +82,7 @@ impl TryFrom<&str> for DateSpan {
           NaiveDate::parse_from_str(&date_or_range[..idx], "%Y-%m-%d")?,
           NaiveDate::parse_from_str(&date_or_range[idx + 1..], "%Y-%m-%d")?,
         )),
-        None => Ok(DateSpan::Day(Day::try_from(date_or_range)?)),
+        None => Ok(DateSpan::Day(date_or_range.parse()?)),
       },
     }
   }

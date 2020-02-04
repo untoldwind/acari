@@ -1,4 +1,4 @@
-use acari_lib::{user_error, AcariError, DateSpan, Day, Minutes};
+use acari_lib::{user_error, AcariError, Minutes};
 use clap::{crate_description, crate_version, App, Arg, ArgMatches, SubCommand};
 use std::convert::TryFrom;
 
@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ("customers", _) => commands::customers(client.as_ref(), output_format)?,
         ("entries", Some(sub_matches)) => {
           let span = required_arg(sub_matches, "span")?;
-          commands::entries(client.as_ref(), output_format, DateSpan::try_from(span)?)?;
+          commands::entries(client.as_ref(), output_format, span.parse()?)?;
         }
         ("projects", Some(sub_matches)) => match sub_matches.value_of("customer") {
           Some(customer) => commands::projects_of_customer(client.as_ref(), output_format, customer)?,
@@ -85,7 +85,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           let project = required_arg(sub_matches, "project")?;
           let service = required_arg(sub_matches, "service")?;
           let time = Minutes::try_from(required_arg(sub_matches, "time")?)?;
-          let maybe_day = sub_matches.value_of("date").map(Day::try_from).transpose()?;
+          let maybe_day = sub_matches.value_of("date").map(str::parse).transpose()?;
 
           commands::set(client.as_ref(), output_format, customer, project, service, time, maybe_day)?;
         }

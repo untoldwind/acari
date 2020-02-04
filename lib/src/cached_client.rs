@@ -24,7 +24,7 @@ impl CachedClient {
     fs::create_dir_all(&cache_dir)?;
 
     Ok(CachedClient {
-      client: StdClient::new(domain, token),
+      client: StdClient::new(domain, token)?,
       cache_dir,
       cache_ttl,
     })

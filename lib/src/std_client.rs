@@ -6,6 +6,7 @@ use reqwest::Method;
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 use serde_json::json;
+use url::Url;
 
 use reqwest::{blocking, header, StatusCode};
 
@@ -13,49 +14,53 @@ const USER_AGENT: &str = "acari-lib (https://github.com/untoldwind/acari)";
 
 #[derive(Debug)]
 pub struct StdClient {
-  domain: String,
-  token: String,
+  base_url: Url,
   client: blocking::Client,
 }
 
 impl StdClient {
-  pub fn new(domain: &str, token: &str) -> StdClient {
+  pub fn new(domain: &str, token: &str) -> Result<StdClient, AcariError> {
+    Ok(Self::new_form_url(format!("https://{}@{}", token, domain).parse()?))
+  }
+
+  pub fn new_form_url(base_url: Url) -> StdClient {
     StdClient {
-      domain: domain.to_string(),
-      token: token.to_string(),
+      base_url,
       client: blocking::Client::new(),
     }
   }
 
-  fn base_request(&self, method: Method, uri: &str) -> blocking::RequestBuilder {
-    self
-      .client
-      .request(method, &format!("https://{}{}", self.domain, uri))
-      .header(header::USER_AGENT, USER_AGENT)
-      .header(header::HOST, &self.domain)
-      .header("X-MiteApiKey", &self.token)
+  fn base_request(&self, method: Method, uri: &str) -> Result<blocking::RequestBuilder, AcariError> {
+    Ok(
+      self
+        .client
+        .request(method, self.base_url.join(uri)?.as_str())
+        .header(header::USER_AGENT, USER_AGENT)
+        .header(header::HOST, self.base_url.host_str().unwrap_or(""))
+        .header("X-MiteApiKey", self.base_url.username()),
+    )
   }
 
   fn request<T: DeserializeOwned>(&self, method: Method, uri: &str) -> Result<T, AcariError> {
-    let response = self.base_request(method, uri).send()?;
+    let response = self.base_request(method, uri)?.send()?;
 
     handle_response(response)
   }
 
   fn request_empty(&self, method: Method, uri: &str) -> Result<(), AcariError> {
-    let response = self.base_request(method, uri).send()?;
+    let response = self.base_request(method, uri)?.send()?;
 
     handle_empty_response(response)
   }
 
   fn request_with_body<T: DeserializeOwned, D: Serialize>(&self, method: Method, uri: &str, data: D) -> Result<T, AcariError> {
-    let response = self.base_request(method, uri).json(&data).send()?;
+    let response = self.base_request(method, uri)?.json(&data).send()?;
 
     handle_response(response)
   }
 
   fn request_empty_with_body<D: Serialize>(&self, method: Method, uri: &str, data: D) -> Result<(), AcariError> {
-    let response = self.base_request(method, uri).json(&data).send()?;
+    let response = self.base_request(method, uri)?.json(&data).send()?;
 
     handle_empty_response(response)
   }

@@ -10,7 +10,7 @@ macro_rules! id_wrapper {
   ($name: ident) => {
     #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
     #[serde(transparent)]
-    pub struct $name(u32);
+    pub struct $name(pub u32);
 
     impl fmt::Display for $name {
       fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -27,7 +27,7 @@ id_wrapper!(ProjectId);
 id_wrapper!(ServiceId);
 id_wrapper!(TimeEntryId);
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Account {
   pub id: AccountId,
   pub name: String,
@@ -37,7 +37,7 @@ pub struct Account {
   pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct User {
   pub id: UserId,
   pub name: String,

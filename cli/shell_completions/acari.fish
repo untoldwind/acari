@@ -36,6 +36,7 @@ complete -f -c acari -n "__fish_seen_subcommand_from customers"
 
 # entries
 complete -f -c acari -n "__fish_seen_subcommand_from entries"
+complete -f -c acari -n "__fish_seen_subcommand_from entries; and __fish_is_arg_n 2" -a "today yesterday this-week last-week this-month last-month (date +%Y-%m-%d)" 
 
 # projects
 complete -f -c acari -n "__fish_seen_subcommand_from projects"

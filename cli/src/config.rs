@@ -35,7 +35,7 @@ impl Config {
         Duration::from_secs(self.cache_ttl_minutes * 60),
       )?))
     } else {
-      Ok(Box::new(StdClient::new(&self.domain, &self.token)))
+      Ok(Box::new(StdClient::new(&self.domain, &self.token)?))
     }
   }
 

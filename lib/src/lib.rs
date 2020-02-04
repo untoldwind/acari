@@ -12,6 +12,9 @@ pub use model::{
 pub use query::{DateSpan, Day};
 pub use std_client::StdClient;
 
+#[cfg(test)]
+mod tests;
+
 pub trait Client {
   fn get_account(&self) -> Result<Account, AcariError>;
 
