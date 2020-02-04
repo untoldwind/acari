@@ -88,7 +88,7 @@ fn print_pretty(maybe_entry: Option<TimeEntry>, tracker: Tracker) {
       entry_table.set_format(*format::consts::FORMAT_CLEAN);
 
       if let Some(tracking_entry) = tracker.tracking_time_entry.filter(|t| t.id == entry.id) {
-        entry_table.add_row(row!["Time", tracking_entry.minutes]);
+        entry_table.add_row(row![FY => "Time", tracking_entry.minutes]);
 
         match tracking_entry.since {
           Some(since) => println!("Currently tracking since {}", since),

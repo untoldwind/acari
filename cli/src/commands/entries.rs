@@ -28,12 +28,26 @@ pub fn entries(client: &dyn Client, output_format: OutputFormat, date_span: Date
 }
 
 fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>, tracking_time_entry: Option<TrackingTimeEntry>) {
+  if entries.is_empty() {
+    println!("No entries found");
+    return;
+  }
+
   let mut entries_table = Table::new();
   entries_table.set_titles(row!["Day", "Time", "Customer", "Project", "Service"]);
   entries_table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
 
   for (day, group) in entries {
-    let sum = group.iter().map(|e| e.minutes).sum::<Minutes>();
+    let sum = group
+      .iter()
+      .map(|e| {
+        if let Some(tracking_entry) = tracking_time_entry.filter(|t| t.id == e.id) {
+          tracking_entry.minutes
+        } else {
+          e.minutes
+        }
+      })
+      .sum::<Minutes>();
     entries_table.add_row(row![bFc -> day, bFc -> sum, H3 -> " " ]);
     for entry in group {
       if let Some(tracking_entry) = tracking_time_entry.filter(|t| t.id == entry.id) {
