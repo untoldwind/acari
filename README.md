@@ -1,3 +1,5 @@
+![Build](https://github.com/untoldwind/acari/workflows/Build/badge.svg)
+
 # Command-line client for mite time-tracking
 
 ## Requirements
