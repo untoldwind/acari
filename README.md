@@ -8,7 +8,12 @@ Rust >=1.41.0
 
 ## Installation
 
-Right now this in a too early stage to be published on crates.io, so the best installation method is to check out this project and run
+Simple way
+```
+cargo install acari-cli
+```
+
+Alternative: Checkout the project and do
 ```
 cargo install --path cli --force --locked
 ```

@@ -1,5 +1,5 @@
 use acari_lib::{user_error, AcariError, DateSpan, Day, Minutes};
-use clap::{App, Arg, ArgMatches, SubCommand};
+use clap::{App, Arg, ArgMatches, SubCommand, crate_version, crate_description};
 use std::convert::TryFrom;
 
 mod commands;
@@ -10,8 +10,8 @@ use config::Config;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
   let app = App::new("acarid")
-    .version("0.1")
-    .about("Commandline interface for mite")
+    .version(crate_version!())
+    .about(crate_description!())
     .arg(
       Arg::with_name("output")
         .short("o")
