@@ -1,5 +1,5 @@
 use acari_lib::{user_error, AcariError, DateSpan, Day, Minutes};
-use clap::{App, Arg, ArgMatches, SubCommand, crate_version, crate_description};
+use clap::{crate_description, crate_version, App, Arg, ArgMatches, SubCommand};
 use std::convert::TryFrom;
 
 mod commands;

@@ -24,10 +24,17 @@ cargo install --path cli --force --locked
 
 Copy or symlink `cli/shell_completions/acari.fish` to `~/.config/fish/completions`.
 
-### Bash/Zsh
+### Zsh
 
-Right now there are two options:
-* Migrate to the more colorful side of `fish`
+Copy `cli/shell_completions/zsh/_acari` to somewhere in your `$fpath` (usually something like `/usr/local/share/zsh/site-functions` or `/usr/share/zsh/site-functions`).
+
+Note: This is barely tested right now and should probably be done differently.
+
+### Bash
+
+Right now there are three options:
+* Migrate to the slightly more colorful side of `zsh`
+* Migrate to the much more colorful side of `fish`
 * Contribute your own completions. I will gladly accept pull requests.
 
 ## Basic usage

@@ -1,0 +1,66 @@
+#compdef acari
+
+_acari() {
+    local context state state_descr line
+    typeset -A opt_args
+
+    _arguments -C \
+       "-h[Show help]" \
+       "--help[Show help]" \
+       "-o-[Set output format]: :(pretty json flat)" \
+       "--output=[Set output format]: :(pretty json flat)" \
+       "1:command:((
+           init\:'initialize connection' 
+           check\:'check connection' 
+           clear-cache\:'clear chaches'
+           customers\:'list customers'
+           entries\:'list time entries'
+           projects\:'list projects'
+           services\:'list services'
+           set\:'set time entry'
+           start\:'start time tracking'
+           stop\:'stop time tracking'
+           tracking\:'show current time tracking'
+        ))" \
+        "*::arg:->args"
+
+    case $line[1] in
+        projects)
+            _acari_projects
+        ;;
+        start)
+            _acari_start_set
+        ;;
+        set)
+            _acari_start_set
+        ;;
+    esac
+}
+
+_acari_projects() {
+    _arguments \
+        '1:customer:(${(f)"$(acari -oflat customers)"})'
+}
+
+_acari_start_set() {
+    local context state state_descr line
+    typeset -A opt_args
+
+    _arguments \
+        '1:customer:(${(f)"$(acari -oflat customers)"})' \
+        '2:projects:->projects' \
+        '3:services:->services'
+    
+    echo $state >> .bla
+    case $state in
+        projects)
+            local customer=$(print $line[1])
+            _arguments \
+                '2:projects:(${(f)"$(acari -oflat projects $customer)"})'
+        ;;
+        services) 
+            _arguments \
+                '3:services:(${(f)"$(acari -oflat services)"})'
+        ;;
+    esac
+}
