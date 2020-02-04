@@ -18,11 +18,11 @@ impl Day {
     }
   }
 
-  pub fn as_iso_date(self) -> String {
+  pub fn as_date(self) -> NaiveDate {
     match self {
-      Day::Today => format!("{}", Local::now().naive_local().date()),
-      Day::Yesterday => format!("{}", Local::now().naive_local().date().pred()),
-      Day::Date(date) => format!("{}", date),
+      Day::Today => Local::now().naive_local().date(),
+      Day::Yesterday => Local::now().naive_local().date().pred(),
+      Day::Date(date) => date,
     }
   }
 }
@@ -36,6 +36,12 @@ impl TryFrom<&str> for Day {
       "yesterday" => Ok(Day::Yesterday),
       date => Ok(Day::Date(NaiveDate::parse_from_str(date, "%Y-%m-%d")?)),
     }
+  }
+}
+
+impl From<NaiveDate> for Day {
+  fn from(date: NaiveDate) -> Self {
+    Day::Date(date)
   }
 }
 
@@ -85,5 +91,11 @@ impl TryFrom<&str> for DateSpan {
 impl From<Day> for DateSpan {
   fn from(day: Day) -> Self {
     DateSpan::Day(day)
+  }
+}
+
+impl From<NaiveDate> for DateSpan {
+  fn from(date: NaiveDate) -> Self {
+    DateSpan::Day(Day::Date(date))
   }
 }

@@ -141,7 +141,7 @@ impl Client for StdClient {
       "/time_entries.json",
       json!({
         "time_entry": {
-          "date_at": day.as_iso_date(),
+          "date_at": day.as_date(),
           "project_id": project_id,
           "service_id": service_id,
           "minutes": minutes,

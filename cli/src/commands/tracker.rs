@@ -15,17 +15,18 @@ pub fn start(
   let customer = find_customer(client, customer_name)?;
   let project = find_project(client, customer.id, project_name)?;
   let service = find_service(client, service_name)?;
+  let date = Day::Today.as_date();
 
   let maybe_existing = match minutes_offset {
     Some(_) => None,
     None => client
-      .get_time_entries(Day::Today.into())?
+      .get_time_entries(date.into())?
       .into_iter()
-      .find(|e| e.customer_id == customer.id && e.project_id == project.id && e.service_id == service.id),
+      .find(|e| e.date_at == date && e.customer_id == customer.id && e.project_id == project.id && e.service_id == service.id),
   };
   let entry = match maybe_existing {
     Some(existing) => existing,
-    None => client.create_time_entry(Day::Today, project.id, service.id, minutes_offset.unwrap_or_default())?,
+    None => client.create_time_entry(date.into(), project.id, service.id, minutes_offset.unwrap_or_default())?,
   };
   let tracker = client.create_tracker(entry.id)?;
 

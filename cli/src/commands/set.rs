@@ -14,10 +14,10 @@ pub fn set(
   let customer = find_customer(client, customer_name)?;
   let project = find_project(client, customer.id, project_name)?;
   let service = find_service(client, service_name)?;
-  let date_span = maybe_day.unwrap_or(Day::Today).into();
-  let mut time_entries = client.get_time_entries(date_span)?;
+  let date = maybe_day.unwrap_or(Day::Today).as_date();
+  let mut time_entries = client.get_time_entries(date.into())?;
 
-  time_entries.retain(|e| e.customer_id == customer.id && e.project_id == project.id && e.service_id == service.id);
+  time_entries.retain(|e| e.date_at == date && e.customer_id == customer.id && e.project_id == project.id && e.service_id == service.id);
 
   if let Some(first) = time_entries.first() {
     client.update_time_entry(first.id, minutes)?;
@@ -28,5 +28,5 @@ pub fn set(
     client.create_time_entry(maybe_day.unwrap_or(Day::Today), project.id, service.id, minutes)?;
   }
 
-  entries(client, output_format, date_span)
+  entries(client, output_format, date.into())
 }
