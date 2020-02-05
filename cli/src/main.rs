@@ -9,7 +9,7 @@ use commands::OutputFormat;
 use config::Config;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-  let app = App::new("acarid")
+  let app = App::new("acari")
     .version(crate_version!())
     .about(crate_description!())
     .arg(
