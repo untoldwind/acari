@@ -2,7 +2,7 @@ use crate::error::AcariError;
 use chrono::{Local, NaiveDate};
 use std::str::FromStr;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Day {
   Today,
   Yesterday,
@@ -45,7 +45,7 @@ impl From<NaiveDate> for Day {
   }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DateSpan {
   ThisWeek,
   LastWeek,
@@ -97,5 +97,36 @@ impl From<Day> for DateSpan {
 impl From<NaiveDate> for DateSpan {
   fn from(date: NaiveDate) -> Self {
     DateSpan::Day(Day::Date(date))
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use chrono::NaiveDate;
+  use pretty_assertions::assert_eq;
+
+  #[test]
+  fn test_parse_day() -> Result<(), Box<dyn std::error::Error>> {
+    assert_eq!(Day::Today, "today".parse()?);
+    assert_eq!(Day::Today, "now".parse()?);
+    assert_eq!(Day::Yesterday, "yesterday".parse()?);
+    assert_eq!(Day::Date(NaiveDate::from_ymd(2020, 3, 4)), "2020-03-04".parse()?);
+
+    Ok(())
+  }
+
+  #[test]
+  fn test_parse_datespan() -> Result<(), Box<dyn std::error::Error>> {
+    assert_eq!(DateSpan::Day(Day::Today), "today".parse()?);
+    assert_eq!(DateSpan::Day(Day::Today), "now".parse()?);
+    assert_eq!(DateSpan::Day(Day::Yesterday), "yesterday".parse()?);
+    assert_eq!(DateSpan::Day(Day::Date(NaiveDate::from_ymd(2020, 3, 4))), "2020-03-04".parse()?);
+    assert_eq!(DateSpan::ThisWeek, "this-week".parse()?);
+    assert_eq!(DateSpan::LastWeek, "last-week".parse()?);
+    assert_eq!(DateSpan::ThisMonth, "this-month".parse()?);
+    assert_eq!(DateSpan::LastMonth, "last-month".parse()?);
+
+    Ok(())
   }
 }

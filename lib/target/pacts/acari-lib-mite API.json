@@ -63,6 +63,79 @@
       }
     },
     {
+      "description": "get customers",
+      "providerStates": [
+        {
+          "name": "User with API token"
+        }
+      ],
+      "request": {
+        "headers": {
+          "X-MiteApiKey": "12345678"
+        },
+        "matchingRules": {
+          "header": {
+            "X-MiteApiKey": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "[0-9a-f]+"
+                }
+              ]
+            }
+          },
+          "path": {}
+        },
+        "method": "GET",
+        "path": "/customers.json"
+      },
+      "response": {
+        "body": [
+          {
+            "customer": {
+              "active_hourly_rate": "hourly_rates_per_service",
+              "archived": false,
+              "created_at": "2015-10-15T14:33:19+02:00",
+              "hourly_rate": null,
+              "hourly_rates_per_service": [
+                {
+                  "hourly_rate": 4500,
+                  "service_id": 742
+                },
+                {
+                  "hourly_rate": 5500,
+                  "service_id": 43212
+                }
+              ],
+              "id": 83241,
+              "name": "Acme Inc.",
+              "note": "",
+              "updated_at": "2015-10-15T14:29:03+02:00"
+            }
+          }
+        ],
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "body": {},
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^application/json; charset=(utf|UTF)-8$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
       "description": "get myself",
       "providerStates": [
         {
@@ -104,6 +177,146 @@
             "updated_at": "2015-07-25T01:26:35+02:00"
           }
         },
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "body": {},
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^application/json; charset=(utf|UTF)-8$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "get projects",
+      "providerStates": [
+        {
+          "name": "User with API token"
+        }
+      ],
+      "request": {
+        "headers": {
+          "X-MiteApiKey": "12345678"
+        },
+        "matchingRules": {
+          "header": {
+            "X-MiteApiKey": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "[0-9a-f]+"
+                }
+              ]
+            }
+          },
+          "path": {}
+        },
+        "method": "GET",
+        "path": "/projects.json"
+      },
+      "response": {
+        "body": [
+          {
+            "project": {
+              "active_hourly_rate": "hourly_rate",
+              "archived": false,
+              "budget": 0,
+              "budget_type": "minutes",
+              "created_at": "2011-08-17T12:06:57+02:00",
+              "customer_id": 291,
+              "customer_name": "Yolk",
+              "hourly_rate": 6000,
+              "hourly_rates_per_service": [
+                {
+                  "hourly_rate": 4500,
+                  "service_id": 31272
+                },
+                {
+                  "hourly_rate": 5500,
+                  "service_id": 149228
+                }
+              ],
+              "id": 643,
+              "name": "Open-Source",
+              "note": "valvat, memento et all.",
+              "updated_at": "2015-02-19T10:53:10+01:00"
+            }
+          }
+        ],
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "body": {},
+          "header": {
+            "Content-Type": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^application/json; charset=(utf|UTF)-8$"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "get services",
+      "providerStates": [
+        {
+          "name": "User with API token"
+        }
+      ],
+      "request": {
+        "headers": {
+          "X-MiteApiKey": "12345678"
+        },
+        "matchingRules": {
+          "header": {
+            "X-MiteApiKey": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "[0-9a-f]+"
+                }
+              ]
+            }
+          },
+          "path": {}
+        },
+        "method": "GET",
+        "path": "/services.json"
+      },
+      "response": {
+        "body": [
+          {
+            "service": {
+              "archived": false,
+              "billable": true,
+              "created_at": "2009-12-13T12:12:00+01:00",
+              "hourly_rate": 3300,
+              "id": 38672,
+              "name": "Website Konzeption",
+              "note": "",
+              "updated_at": "2015-12-13T07:20:04+01:00"
+            }
+          }
+        ],
         "headers": {
           "Content-Type": "application/json; charset=utf-8"
         },

@@ -50,18 +50,18 @@ pub struct User {
   pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Customer {
   pub id: CustomerId,
   pub name: String,
   pub note: String,
-  pub hourly_rate: u32,
+  pub hourly_rate: Option<u32>,
   pub archived: bool,
   pub created_at: DateTime<Utc>,
   pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Project {
   pub id: ProjectId,
   pub name: String,
@@ -70,13 +70,13 @@ pub struct Project {
   pub note: String,
   pub budget: u32,
   pub budget_type: String,
-  pub hourly_rate: u32,
+  pub hourly_rate: Option<u32>,
   pub archived: bool,
   pub created_at: DateTime<Utc>,
   pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Service {
   pub id: ServiceId,
   pub name: String,
