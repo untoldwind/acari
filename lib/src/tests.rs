@@ -263,7 +263,49 @@ fn test_get_services() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn test_quest_entries() -> Result<(), Box<dyn std::error::Error>> {
+fn test_query_entries() -> Result<(), Box<dyn std::error::Error>> {
+  let time_entry_json = json!({
+    "time_entry": {
+       "id": 36159117,
+       "minutes": 15,
+       "date_at": "2015-10-16",
+       "note": "Feedback einarbeiten",
+       "billable": true,
+       "locked": false,
+       "revenue": null,
+       "hourly_rate": 0,
+       "user_id": 211,
+       "user_name": "Fridolin Frei",
+       "project_id": 88309,
+       "project_name": "API v2",
+       "customer_id": 3213,
+       "customer_name": "König",
+       "service_id": 12984,
+       "service_name": "Entwurf",
+       "created_at": "2015-10-16T12:19:00+02:00",
+       "updated_at": "2015-10-16T12:39:00+02:00"
+    }
+  });
+  let expected = TimeEntry {
+    id: TimeEntryId(36159117),
+    minutes: Minutes(15),
+    date_at: NaiveDate::from_ymd(2015, 10, 16),
+    note: "Feedback einarbeiten".to_string(),
+    locked: false,
+    billable: true,
+    hourly_rate: 0,
+    user_id: UserId(211),
+    user_name: "Fridolin Frei".to_string(),
+    customer_id: CustomerId(3213),
+    customer_name: "König".to_string(),
+    service_id: ServiceId(12984),
+    service_name: "Entwurf".to_string(),
+    project_id: ProjectId(88309),
+    project_name: "API v2".to_string(),
+    created_at: Utc.ymd(2015, 10, 16).and_hms(10, 19, 00),
+    updated_at: Utc.ymd(2015, 10, 16).and_hms(10, 39, 00),
+  };
+
   let pact = PactBuilder::new(CONSUMER, PROVIDER)
     .interaction("query time entries", |i| {
       i.given("User with API token");
@@ -273,28 +315,15 @@ fn test_quest_entries() -> Result<(), Box<dyn std::error::Error>> {
         .query_param("at", "2015-10-16")
         .query_param("user", "current")
         .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
-      i.response.ok().json_utf8().json_body(json!([{
-        "time_entry": {
-           "id": 36159117,
-           "minutes": 15,
-           "date_at": "2015-10-16",
-           "note": "Feedback einarbeiten",
-           "billable": true,
-           "locked": false,
-           "revenue": null,
-           "hourly_rate": 0,
-           "user_id": 211,
-           "user_name": "Fridolin Frei",
-           "project_id": 88309,
-           "project_name": "API v2",
-           "customer_id": 3213,
-           "customer_name": "König",
-           "service_id": 12984,
-           "service_name": "Entwurf",
-           "created_at": "2015-10-16T12:19:00+02:00",
-           "updated_at": "2015-10-16T12:39:00+02:00"
-        }
-      }]));
+      i.response.ok().json_utf8().json_body(json!([time_entry_json]));
+    })
+    .interaction("get time entry by id", |i| {
+      i.given("User with API token");
+      i.request
+        .get()
+        .path("/time_entries/36159117.json")
+        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.ok().json_utf8().json_body(time_entry_json);
     })
     .build();
 
@@ -306,12 +335,70 @@ fn test_quest_entries() -> Result<(), Box<dyn std::error::Error>> {
   let entries = client.get_time_entries(DateSpan::Day(Day::Date(NaiveDate::from_ymd(2015, 10, 16))))?;
 
   assert_eq!(entries.len(), 1);
+  assert_eq!(expected, entries[0]);
+
+  let entry = client.get_time_entry(TimeEntryId(36159117))?;
+
+  assert_eq!(expected, entry);
+
+  Ok(())
+}
+
+#[test]
+fn test_create_entry() -> Result<(), Box<dyn std::error::Error>> {
+  let pact = PactBuilder::new(CONSUMER, PROVIDER)
+    .interaction("create time entry", |i| {
+      i.given("User with API token");
+      i.request
+        .post()
+        .path("/time_entries.json")
+        .json_body(json!({
+           "time_entry": {
+              "date_at": "2015-09-15",
+              "minutes": 185,
+              "project_id": 3456,
+              "service_id": 243
+           }
+        }))
+        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.created().json_utf8().json_body(json!({
+         "time_entry": {
+            "id": 52324,
+            "minutes": 185,
+            "date_at": "2015-9-12",
+            "note": "",
+            "billable": true,
+            "locked": false,
+            "revenue": null,
+            "hourly_rate": 0,
+            "user_id": 211,
+            "user_name": "Fridolin Frei",
+            "customer_id": 3213,
+            "customer_name": "König",
+            "project_id": 3456,
+            "project_name": "Some project",
+            "service_id": 243,
+            "service_name": "Dokumentation",
+            "created_at": "2015-09-13T18:54:45+02:00",
+            "updated_at": "2015-09-13T18:54:45+02:00"
+         }
+      }));
+    })
+    .build();
+
+  let server = pact.start_mock_server();
+  let mut url = server.url().clone();
+  url.set_username("12345678").unwrap();
+  let client = StdClient::new_form_url(url);
+
+  let entry = client.create_time_entry(Day::Date(NaiveDate::from_ymd(2015, 9, 15)), ProjectId(3456), ServiceId(243), Minutes(185))?;
+
   assert_eq!(
     TimeEntry {
-      id: TimeEntryId(36159117),
-      minutes: Minutes(15),
-      date_at: NaiveDate::from_ymd(2015, 10, 16),
-      note: "Feedback einarbeiten".to_string(),
+      id: TimeEntryId(52324),
+      minutes: Minutes(185),
+      date_at: NaiveDate::from_ymd(2015, 9, 12),
+      note: "".to_string(),
       locked: false,
       billable: true,
       hourly_rate: 0,
@@ -319,15 +406,66 @@ fn test_quest_entries() -> Result<(), Box<dyn std::error::Error>> {
       user_name: "Fridolin Frei".to_string(),
       customer_id: CustomerId(3213),
       customer_name: "König".to_string(),
-      service_id: ServiceId(12984),
-      service_name: "Entwurf".to_string(),
-      project_id: ProjectId(88309),
-      project_name: "API v2".to_string(),
-      created_at: Utc.ymd(2015, 10, 16).and_hms(10, 19, 00),
-      updated_at: Utc.ymd(2015, 10, 16).and_hms(10, 39, 00)
+      service_id: ServiceId(243),
+      service_name: "Dokumentation".to_string(),
+      project_id: ProjectId(3456),
+      project_name: "Some project".to_string(),
+      created_at: Utc.ymd(2015, 9, 13).and_hms(16, 54, 45),
+      updated_at: Utc.ymd(2015, 9, 13).and_hms(16, 54, 45),
     },
-    entries[0]
+    entry
   );
+
+  Ok(())
+}
+
+#[test]
+fn test_delete_entry() -> Result<(), Box<dyn std::error::Error>> {
+  let pact = PactBuilder::new(CONSUMER, PROVIDER)
+    .interaction("delete time entry", |i| {
+      i.given("User with API token");
+      i.request
+        .delete()
+        .path("/time_entries/52324.json")
+        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.ok();
+    })
+    .build();
+
+  let server = pact.start_mock_server();
+  let mut url = server.url().clone();
+  url.set_username("12345678").unwrap();
+  let client = StdClient::new_form_url(url);
+
+  client.delete_time_entry(TimeEntryId(52324))?;
+
+  Ok(())
+}
+
+#[test]
+fn test_update_entry() -> Result<(), Box<dyn std::error::Error>> {
+  let pact = PactBuilder::new(CONSUMER, PROVIDER)
+    .interaction("update time entry", |i| {
+      i.given("User with API token");
+      i.request
+        .method("PATCH")
+        .path("/time_entries/52324.json")
+        .json_body(json!({
+           "time_entry": {
+              "minutes": 120
+           }
+        }))
+        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.ok();
+    })
+    .build();
+
+  let server = pact.start_mock_server();
+  let mut url = server.url().clone();
+  url.set_username("12345678").unwrap();
+  let client = StdClient::new_form_url(url);
+
+  client.update_time_entry(TimeEntryId(52324), Minutes(120))?;
 
   Ok(())
 }
