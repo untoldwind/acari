@@ -2,30 +2,30 @@ on:
   push:
     tags:
     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-  name: Create Release
-  jobs:
-    build:
-      name: Create Release
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@master
-        - run: cargo login ${CRATES_IO_TOKEN}
-          env:
-            CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
-        - name: Publish lib
-          run: cargo publish
-          working-directory: ./lib
-        - name: Publish cli
-          run: cargo publish
-          working-directory: ./cli
-        - name: Create Release
-          id: create_release
-          uses: actions/create-release@v1
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-          with:
-            tag_name: ${{ github.ref }}
-            release_name: Release ${{ github.ref }}
-            body: ""
-            draft: false
-            prerelease: false
+name: Create Release
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - run: cargo login ${CRATES_IO_TOKEN}
+      env:
+        CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+    - name: Publish lib
+      run: cargo publish
+      working-directory: ./lib
+    - name: Publish cli
+      run: cargo publish
+      working-directory: ./cli
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: ""
+        draft: false
+        prerelease: false
