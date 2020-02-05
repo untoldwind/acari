@@ -15,6 +15,10 @@ jobs:
     - name: Publish lib
       run: cargo publish
       working-directory: ./lib
+    - name: Sleep for 15 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '15s'
     - name: Publish cli
       run: cargo publish
       working-directory: ./cli

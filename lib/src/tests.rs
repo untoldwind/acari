@@ -1,10 +1,13 @@
-use chrono::{TimeZone, Utc};
+use chrono::{NaiveDate, TimeZone, Utc};
 use pact_consumer::prelude::*;
 use pact_consumer::term;
 use pretty_assertions::assert_eq;
 use serde_json::json;
 
-use super::{Account, AccountId, Client, Customer, CustomerId, Project, ProjectId, Service, ServiceId, StdClient, User, UserId};
+use super::{
+  Account, AccountId, Client, Customer, CustomerId, DateSpan, Day, Minutes, Project, ProjectId, Service, ServiceId, StdClient, TimeEntry, TimeEntryId, User,
+  UserId,
+};
 
 const CONSUMER: &str = "acari-lib";
 const PROVIDER: &str = "mite API";
@@ -254,6 +257,76 @@ fn test_get_services() -> Result<(), Box<dyn std::error::Error>> {
       updated_at: Utc.ymd(2015, 12, 13).and_hms(06, 20, 04)
     },
     services[0]
+  );
+
+  Ok(())
+}
+
+#[test]
+fn test_quest_entries() -> Result<(), Box<dyn std::error::Error>> {
+  let pact = PactBuilder::new(CONSUMER, PROVIDER)
+    .interaction("query time entries", |i| {
+      i.given("User with API token");
+      i.request
+        .get()
+        .path("/time_entries.json")
+        .query_param("at", "2015-10-16")
+        .query_param("user", "current")
+        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.ok().json_utf8().json_body(json!([{
+        "time_entry": {
+           "id": 36159117,
+           "minutes": 15,
+           "date_at": "2015-10-16",
+           "note": "Feedback einarbeiten",
+           "billable": true,
+           "locked": false,
+           "revenue": null,
+           "hourly_rate": 0,
+           "user_id": 211,
+           "user_name": "Fridolin Frei",
+           "project_id": 88309,
+           "project_name": "API v2",
+           "customer_id": 3213,
+           "customer_name": "König",
+           "service_id": 12984,
+           "service_name": "Entwurf",
+           "created_at": "2015-10-16T12:19:00+02:00",
+           "updated_at": "2015-10-16T12:39:00+02:00"
+        }
+      }]));
+    })
+    .build();
+
+  let server = pact.start_mock_server();
+  let mut url = server.url().clone();
+  url.set_username("12345678").unwrap();
+  let client = StdClient::new_form_url(url);
+
+  let entries = client.get_time_entries(DateSpan::Day(Day::Date(NaiveDate::from_ymd(2015, 10, 16))))?;
+
+  assert_eq!(entries.len(), 1);
+  assert_eq!(
+    TimeEntry {
+      id: TimeEntryId(36159117),
+      minutes: Minutes(15),
+      date_at: NaiveDate::from_ymd(2015, 10, 16),
+      note: "Feedback einarbeiten".to_string(),
+      locked: false,
+      billable: true,
+      hourly_rate: 0,
+      user_id: UserId(211),
+      user_name: "Fridolin Frei".to_string(),
+      customer_id: CustomerId(3213),
+      customer_name: "König".to_string(),
+      service_id: ServiceId(12984),
+      service_name: "Entwurf".to_string(),
+      project_id: ProjectId(88309),
+      project_name: "API v2".to_string(),
+      created_at: Utc.ymd(2015, 10, 16).and_hms(10, 19, 00),
+      updated_at: Utc.ymd(2015, 10, 16).and_hms(10, 39, 00)
+    },
+    entries[0]
   );
 
   Ok(())

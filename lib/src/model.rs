@@ -126,7 +126,7 @@ impl TryFrom<&str> for Minutes {
   }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct TimeEntry {
   pub id: TimeEntryId,
   pub date_at: NaiveDate,
