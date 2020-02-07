@@ -1,3 +1,4 @@
+mod add;
 mod all_projects;
 mod check;
 mod clear_cache;
@@ -9,6 +10,7 @@ mod services;
 mod set;
 mod tracker;
 
+pub use add::*;
 pub use all_projects::*;
 pub use check::*;
 pub use clear_cache::*;

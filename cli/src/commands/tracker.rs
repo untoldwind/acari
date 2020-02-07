@@ -19,10 +19,17 @@ pub fn start(
 
   let maybe_existing = match minutes_offset {
     Some(_) => None,
-    None => client
-      .get_time_entries(date.into())?
-      .into_iter()
-      .find(|e| e.date_at == date && e.customer_id == customer.id && e.project_id == project.id && e.service_id == service.id),
+    None => {
+      let mut existing: Vec<TimeEntry> = client
+        .get_time_entries(date.into())?
+        .into_iter()
+        .filter(|e| e.date_at == date && e.customer_id == customer.id && e.project_id == project.id && e.service_id == service.id)
+        .collect();
+
+      existing.sort_by(|e1, e2| e2.updated_at.cmp(&e1.updated_at));
+
+      existing.into_iter().next()
+    }
   };
   let entry = match maybe_existing {
     Some(existing) => existing,

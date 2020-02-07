@@ -13,6 +13,7 @@ complete -c acari -s h -l help -d "show help"
 complete -c acari -l no-cache -d "disable caching"
 
 # subcommands
+complete -f -c acari -n "__fish_use_subcommand" -a add -d "add time entry"
 complete -f -c acari -n "__fish_use_subcommand" -a init -d "initialize connection"
 complete -f -c acari -n "__fish_use_subcommand" -a check -d "check connection"
 complete -f -c acari -n "__fish_use_subcommand" -a clear-cache -d "Clear local cache"
@@ -24,6 +25,12 @@ complete -f -c acari -n "__fish_use_subcommand" -a set -d "set time entry"
 complete -f -c acari -n "__fish_use_subcommand" -a start -d "start time tracking"
 complete -f -c acari -n "__fish_use_subcommand" -a stop -d "stop time tracking"
 complete -f -c acari -n "__fish_use_subcommand" -a tracking -d "show current time tracking"
+
+# add
+complete -f -c acari -n "__fish_seen_subcommand_from add"
+complete -f -c acari -n "__fish_seen_subcommand_from add; and __fish_is_arg_n 2" -a "(acari -oflat customers)" 
+complete -f -c acari -n "__fish_seen_subcommand_from add; and __fish_is_arg_n 3" -a "(acari -oflat projects (__fish_arg_n 2))" 
+complete -f -c acari -n "__fish_seen_subcommand_from add; and __fish_is_arg_n 4" -a "(acari -oflat services)" 
 
 # check
 complete -f -c acari -n "__fish_seen_subcommand_from check"

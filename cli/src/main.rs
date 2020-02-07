@@ -20,6 +20,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .help("Output format (pretty, json, flat)"),
     )
     .arg(Arg::with_name("no-cache").long("no-cache").help("Disable the use of cache files"))
+    .subcommand(
+      SubCommand::with_name("add")
+        .arg(Arg::with_name("customer").required(true).help("Customer name"))
+        .arg(Arg::with_name("project").required(true).help("Project name"))
+        .arg(Arg::with_name("service").required(true).help("Service name"))
+        .arg(Arg::with_name("time").required(true).help("Time (minutes or hh:mm)"))
+        .arg(Arg::with_name("date").help("Optional: Date (default: today)"))
+        .about("Just add a time entry"),
+    )
     .subcommand(SubCommand::with_name("init").about("Initialize connection to mite"))
     .subcommand(SubCommand::with_name("check").about("Check connection to mite"))
     .subcommand(SubCommand::with_name("clear-cache").about("Clear the local cache"))
@@ -67,6 +76,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Some(config) => {
       let client = config.client(!matches.is_present("no-cache"))?;
       match matches.subcommand() {
+        ("add", Some(sub_matches)) => {
+          let customer = required_arg(sub_matches, "customer")?;
+          let project = required_arg(sub_matches, "project")?;
+          let service = required_arg(sub_matches, "service")?;
+          let time = Minutes::try_from(required_arg(sub_matches, "time")?)?;
+          let maybe_day = sub_matches.value_of("date").map(str::parse).transpose()?;
+
+          commands::add(client.as_ref(), output_format, customer, project, service, time, maybe_day)?;
+        }
         ("init", _) => commands::init()?,
         ("check", _) => commands::check(client.as_ref(), output_format)?,
         ("clear-cache", _) => commands::clear_cache()?,
