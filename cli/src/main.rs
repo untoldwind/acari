@@ -1,6 +1,5 @@
 use acari_lib::{user_error, AcariError, Minutes};
 use clap::{crate_description, crate_version, App, Arg, ArgMatches, SubCommand};
-use std::convert::TryFrom;
 
 mod commands;
 mod config;
@@ -80,7 +79,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           let customer = required_arg(sub_matches, "customer")?;
           let project = required_arg(sub_matches, "project")?;
           let service = required_arg(sub_matches, "service")?;
-          let time = Minutes::try_from(required_arg(sub_matches, "time")?)?;
+          let time = required_arg(sub_matches, "time")?.parse::<Minutes>()?;
           let maybe_day = sub_matches.value_of("date").map(str::parse).transpose()?;
 
           commands::add(client.as_ref(), output_format, customer, project, service, time, maybe_day)?;
@@ -102,7 +101,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           let customer = required_arg(sub_matches, "customer")?;
           let project = required_arg(sub_matches, "project")?;
           let service = required_arg(sub_matches, "service")?;
-          let time = Minutes::try_from(required_arg(sub_matches, "time")?)?;
+          let time = required_arg(sub_matches, "time")?.parse::<Minutes>()?;
           let maybe_day = sub_matches.value_of("date").map(str::parse).transpose()?;
 
           commands::set(client.as_ref(), output_format, customer, project, service, time, maybe_day)?;
@@ -111,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
           let customer = required_arg(sub_matches, "customer")?;
           let project = required_arg(sub_matches, "project")?;
           let service = required_arg(sub_matches, "service")?;
-          let maybe_offset = sub_matches.value_of("offset").map(Minutes::try_from).transpose()?;
+          let maybe_offset = sub_matches.value_of("offset").map(str::parse::<Minutes>).transpose()?;
 
           commands::start(client.as_ref(), output_format, customer, project, service, maybe_offset)?;
         }

@@ -2,9 +2,9 @@ use crate::error::AcariError;
 use crate::user_error;
 use chrono::{DateTime, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
 use std::fmt;
 use std::ops;
+use std::str::FromStr;
 
 macro_rules! id_wrapper {
   ($name: ident) => {
@@ -110,18 +110,24 @@ impl std::iter::Sum<Minutes> for Minutes {
   }
 }
 
-impl TryFrom<&str> for Minutes {
-  type Error = AcariError;
+impl FromStr for Minutes {
+  type Err = AcariError;
 
-  fn try_from(value: &str) -> Result<Self, Self::Error> {
-    match value.find(':') {
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    match s.find(':') {
       Some(idx) => {
-        let hours = value[..idx].parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?;
-        let minutes = value[idx + 1..].parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?;
+        let hours = s[..idx].parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?;
+        let minutes = s[idx + 1..].parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?;
 
-        Ok(Minutes(hours * 60 + minutes))
+        if minutes >= 60 {
+          Err(AcariError::UserError("No more than 60 minutes per hour".to_string()))
+        } else if hours >= 24 {
+          Err(AcariError::UserError("No more than 24 hour per day".to_string()))
+        } else {
+          Ok(Minutes(hours * 60 + minutes))
+        }
       }
-      None => Ok(Minutes(value.parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?)),
+      None => Ok(Minutes(s.parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?)),
     }
   }
 }
@@ -147,14 +153,14 @@ pub struct TimeEntry {
   pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TrackingTimeEntry {
   pub id: TimeEntryId,
   pub minutes: Minutes,
   pub since: Option<DateTime<Utc>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Tracker {
   pub tracking_time_entry: Option<TrackingTimeEntry>,
   pub stopped_time_entry: Option<TrackingTimeEntry>,
@@ -171,4 +177,19 @@ pub enum MiteEntity {
   TimeEntry(TimeEntry),
   Tracker(Tracker),
   Error(String),
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use pretty_assertions::assert_eq;
+
+  #[test]
+  fn test_parse_minutes() -> Result<(), Box<dyn std::error::Error>> {
+    assert_eq!("123".parse::<Minutes>()?, Minutes(123));
+    assert_eq!("0:40".parse::<Minutes>()?, Minutes(40));
+    assert_eq!("5:35".parse::<Minutes>()?, Minutes(5 * 60 + 35));
+
+    Ok(())
+  }
 }

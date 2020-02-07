@@ -5,8 +5,8 @@ use pretty_assertions::assert_eq;
 use serde_json::json;
 
 use super::{
-  Account, AccountId, Client, Customer, CustomerId, DateSpan, Day, Minutes, Project, ProjectId, Service, ServiceId, StdClient, TimeEntry, TimeEntryId, User,
-  UserId,
+  Account, AccountId, Client, Customer, CustomerId, DateSpan, Day, Minutes, Project, ProjectId, Service, ServiceId, StdClient, TimeEntry, TimeEntryId, Tracker,
+  TrackingTimeEntry, User, UserId,
 };
 
 const CONSUMER: &str = "acari-lib";
@@ -466,6 +466,139 @@ fn test_update_entry() -> Result<(), Box<dyn std::error::Error>> {
   let client = StdClient::new_form_url(url);
 
   client.update_time_entry(TimeEntryId(52324), Minutes(120))?;
+
+  Ok(())
+}
+
+#[test]
+fn test_get_tracker() -> Result<(), Box<dyn std::error::Error>> {
+  let pact = PactBuilder::new(CONSUMER, PROVIDER)
+    .interaction("get tracker", |i| {
+      i.given("User with API token");
+      i.request.get().path("/tracker.json").header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.ok().json_utf8().json_body(json!({
+        "tracker": {
+          "tracking_time_entry": {
+            "id": 36135321,
+            "minutes": 247,
+            "since": "2015-10-15T17:05:04+02:00"
+          }
+        }
+      }));
+    })
+    .build();
+
+  let server = pact.start_mock_server();
+  let mut url = server.url().clone();
+  url.set_username("12345678").unwrap();
+  let client = StdClient::new_form_url(url);
+
+  let tracker = client.get_tracker()?;
+
+  assert_eq!(
+    Tracker {
+      tracking_time_entry: Some(TrackingTimeEntry {
+        id: TimeEntryId(36135321),
+        minutes: Minutes(247),
+        since: Some(Utc.ymd(2015, 10, 15).and_hms(15, 05, 04))
+      }),
+      stopped_time_entry: None,
+    },
+    tracker
+  );
+
+  Ok(())
+}
+
+#[test]
+fn test_create_tracker() -> Result<(), Box<dyn std::error::Error>> {
+  let pact = PactBuilder::new(CONSUMER, PROVIDER)
+    .interaction("create tracker", |i| {
+      i.given("User with API token");
+      i.request
+        .method("PATCH")
+        .path("/tracker/36135322.json")
+        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.ok().json_utf8().json_body(json!({
+        "tracker": {
+          "tracking_time_entry": {
+            "id": 36135322,
+            "minutes": 0,
+            "since": "2015-10-15T17:33:52+02:00"
+          },
+         "stopped_time_entry": {
+            "id": 36134329,
+            "minutes": 46
+          }
+        }
+      }));
+    })
+    .build();
+
+  let server = pact.start_mock_server();
+  let mut url = server.url().clone();
+  url.set_username("12345678").unwrap();
+  let client = StdClient::new_form_url(url);
+
+  let tracker = client.create_tracker(TimeEntryId(36135322))?;
+
+  assert_eq!(
+    Tracker {
+      tracking_time_entry: Some(TrackingTimeEntry {
+        id: TimeEntryId(36135322),
+        minutes: Minutes(0),
+        since: Some(Utc.ymd(2015, 10, 15).and_hms(15, 33, 52)),
+      }),
+      stopped_time_entry: Some(TrackingTimeEntry {
+        id: TimeEntryId(36134329),
+        minutes: Minutes(46),
+        since: None,
+      }),
+    },
+    tracker
+  );
+
+  Ok(())
+}
+
+#[test]
+fn test_delete_tracker() -> Result<(), Box<dyn std::error::Error>> {
+  let pact = PactBuilder::new(CONSUMER, PROVIDER)
+    .interaction("delete tracker", |i| {
+      i.given("User with API token");
+      i.request
+        .delete()
+        .path("/tracker/36135322.json")
+        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.ok().json_utf8().json_body(json!({
+        "tracker": {
+         "stopped_time_entry": {
+            "id": 36135322,
+            "minutes": 4
+          }
+        }
+      }));
+    })
+    .build();
+
+  let server = pact.start_mock_server();
+  let mut url = server.url().clone();
+  url.set_username("12345678").unwrap();
+  let client = StdClient::new_form_url(url);
+
+  let tracker = client.delete_tracker(TimeEntryId(36135322))?;
+
+  assert_eq!(
+    Tracker {
+      tracking_time_entry: None,
+      stopped_time_entry: Some(TrackingTimeEntry {
+        id: TimeEntryId(36135322),
+        minutes: Minutes(4),
+        since: None,
+      }),
+    },
+    tracker
+  );
 
   Ok(())
 }
