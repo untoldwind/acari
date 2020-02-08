@@ -2,9 +2,9 @@
 # It is not intended for manual editing.
 [[package]]
 name = "acari-cli"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
- "acari-lib 0.1.4",
+ "acari-lib 0.1.5",
  "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "dirs 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -18,7 +18,7 @@ dependencies = [
 
 [[package]]
 name = "acari-lib"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "dirs 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
