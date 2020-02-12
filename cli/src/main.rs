@@ -18,6 +18,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .value_name("format")
         .help("Output format (pretty, json, flat)"),
     )
+    .arg(
+      Arg::with_name("profile")
+        .short("p")
+        .long("profile")
+        .value_name("profile")
+        .help("Select profile"),
+    )
     .arg(Arg::with_name("no-cache").long("no-cache").help("Disable the use of cache files"))
     .subcommand(
       SubCommand::with_name("add")
@@ -65,64 +72,65 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .about("Start tracking time"),
     )
     .subcommand(SubCommand::with_name("stop").about("Stop current time tracking"))
-    .subcommand(SubCommand::with_name("tracking").about("Show currently tracked time entry"));
+    .subcommand(SubCommand::with_name("tracking").about("Show currently tracked time entry"))
+    .subcommand(SubCommand::with_name("profiles").about("List configured profiles"));
 
   let matches = app.get_matches();
 
   let output_format = matches.value_of("output").map(OutputFormat::from_string).unwrap_or(Ok(OutputFormat::Pretty))?;
+  let maybe_profile = matches.value_of("profile");
 
-  match Config::read()? {
-    Some(config) => {
-      let client = config.client(!matches.is_present("no-cache"))?;
-      match matches.subcommand() {
-        ("add", Some(sub_matches)) => {
-          let customer = required_arg(sub_matches, "customer")?;
-          let project = required_arg(sub_matches, "project")?;
-          let service = required_arg(sub_matches, "service")?;
-          let time = required_arg(sub_matches, "time")?.parse::<Minutes>()?;
-          let maybe_day = sub_matches.value_of("date").map(str::parse).transpose()?;
+  if matches.subcommand_name() == Some("init") {
+    // Init is special
+    commands::init(Config::read()?, maybe_profile)?;
+  } else if let Some(config) = Config::read()? {
+    let client = config.client(maybe_profile, !matches.is_present("no-cache"))?;
+    match matches.subcommand() {
+      ("add", Some(sub_matches)) => {
+        let customer = required_arg(sub_matches, "customer")?;
+        let project = required_arg(sub_matches, "project")?;
+        let service = required_arg(sub_matches, "service")?;
+        let time = required_arg(sub_matches, "time")?.parse::<Minutes>()?;
+        let maybe_day = sub_matches.value_of("date").map(str::parse).transpose()?;
 
-          commands::add(client.as_ref(), output_format, customer, project, service, time, maybe_day)?;
-        }
-        ("init", _) => commands::init()?,
-        ("check", _) => commands::check(client.as_ref(), output_format)?,
-        ("clear-cache", _) => commands::clear_cache()?,
-        ("customers", _) => commands::customers(client.as_ref(), output_format)?,
-        ("entries", Some(sub_matches)) => {
-          let span = required_arg(sub_matches, "span")?;
-          commands::entries(client.as_ref(), output_format, span.parse()?)?;
-        }
-        ("projects", Some(sub_matches)) => match sub_matches.value_of("customer") {
-          Some(customer) => commands::projects_of_customer(client.as_ref(), output_format, customer)?,
-          None => commands::all_projects(client.as_ref(), output_format)?,
-        },
-        ("services", _) => commands::services(client.as_ref(), output_format)?,
-        ("set", Some(sub_matches)) => {
-          let customer = required_arg(sub_matches, "customer")?;
-          let project = required_arg(sub_matches, "project")?;
-          let service = required_arg(sub_matches, "service")?;
-          let time = required_arg(sub_matches, "time")?.parse::<Minutes>()?;
-          let maybe_day = sub_matches.value_of("date").map(str::parse).transpose()?;
-
-          commands::set(client.as_ref(), output_format, customer, project, service, time, maybe_day)?;
-        }
-        ("start", Some(sub_matches)) => {
-          let customer = required_arg(sub_matches, "customer")?;
-          let project = required_arg(sub_matches, "project")?;
-          let service = required_arg(sub_matches, "service")?;
-          let maybe_offset = sub_matches.value_of("offset").map(str::parse::<Minutes>).transpose()?;
-
-          commands::start(client.as_ref(), output_format, customer, project, service, maybe_offset)?;
-        }
-        ("stop", _) => commands::stop(client.as_ref(), output_format)?,
-        ("tracking", _) => commands::tracking(client.as_ref(), output_format)?,
-        (invalid, _) => return Err(AcariError::UserError(format!("Unknown command: {}", invalid)).into()),
+        commands::add(client.as_ref(), output_format, customer, project, service, time, maybe_day)?;
       }
+      ("check", _) => commands::check(client.as_ref(), output_format)?,
+      ("clear-cache", _) => commands::clear_cache()?,
+      ("customers", _) => commands::customers(client.as_ref(), output_format)?,
+      ("entries", Some(sub_matches)) => {
+        let span = required_arg(sub_matches, "span")?;
+        commands::entries(client.as_ref(), output_format, span.parse()?)?;
+      }
+      ("projects", Some(sub_matches)) => match sub_matches.value_of("customer") {
+        Some(customer) => commands::projects_of_customer(client.as_ref(), output_format, customer)?,
+        None => commands::all_projects(client.as_ref(), output_format)?,
+      },
+      ("services", _) => commands::services(client.as_ref(), output_format)?,
+      ("set", Some(sub_matches)) => {
+        let customer = required_arg(sub_matches, "customer")?;
+        let project = required_arg(sub_matches, "project")?;
+        let service = required_arg(sub_matches, "service")?;
+        let time = required_arg(sub_matches, "time")?.parse::<Minutes>()?;
+        let maybe_day = sub_matches.value_of("date").map(str::parse).transpose()?;
+
+        commands::set(client.as_ref(), output_format, customer, project, service, time, maybe_day)?;
+      }
+      ("start", Some(sub_matches)) => {
+        let customer = required_arg(sub_matches, "customer")?;
+        let project = required_arg(sub_matches, "project")?;
+        let service = required_arg(sub_matches, "service")?;
+        let maybe_offset = sub_matches.value_of("offset").map(str::parse::<Minutes>).transpose()?;
+
+        commands::start(client.as_ref(), output_format, customer, project, service, maybe_offset)?;
+      }
+      ("stop", _) => commands::stop(client.as_ref(), output_format)?,
+      ("tracking", _) => commands::tracking(client.as_ref(), output_format)?,
+      ("profiles", _) => commands::profiles(config),
+      (invalid, _) => return Err(AcariError::UserError(format!("Unknown command: {}", invalid)).into()),
     }
-    None => match matches.subcommand() {
-      ("init", _) => commands::init()?,
-      (_, _) => return Err(AcariError::UserError("Missing configuration, run init first".to_string()).into()),
-    },
+  } else {
+    return Err(AcariError::UserError("Missing configuration, run init first".to_string()).into());
   }
 
   Ok(())

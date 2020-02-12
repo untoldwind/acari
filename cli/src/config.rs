@@ -1,16 +1,25 @@
 use acari_lib::{internal_error, AcariError, CachedClient, Client, StdClient};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
 use std::time::Duration;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Profile {
+  pub domain: String,
+  pub token: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Config {
   pub domain: String,
   pub token: String,
   #[serde(default = "default_cache_ttl")]
   pub cache_ttl_minutes: u64,
+  #[serde(default)]
+  pub profiles: HashMap<String, Profile>,
 }
 
 impl Config {
@@ -27,15 +36,21 @@ impl Config {
     }
   }
 
-  pub fn client(&self, cached: bool) -> Result<Box<dyn Client>, AcariError> {
+  pub fn client(&self, maybe_profile: Option<&str>, cached: bool) -> Result<Box<dyn Client>, AcariError> {
+    let (domain, token) = match maybe_profile {
+      Some(profile_name) => {
+        let profile = self
+          .profiles
+          .get(profile_name)
+          .ok_or_else(|| AcariError::UserError(format!("No such profile: {}", profile_name)))?;
+        (&profile.domain, &profile.token)
+      }
+      None => (&self.domain, &self.token),
+    };
     if cached {
-      Ok(Box::new(CachedClient::new(
-        &self.domain,
-        &self.token,
-        Duration::from_secs(self.cache_ttl_minutes * 60),
-      )?))
+      Ok(Box::new(CachedClient::new(domain, token, Duration::from_secs(self.cache_ttl_minutes * 60))?))
     } else {
-      Ok(Box::new(StdClient::new(&self.domain, &self.token)?))
+      Ok(Box::new(StdClient::new(domain, token)?))
     }
   }
 

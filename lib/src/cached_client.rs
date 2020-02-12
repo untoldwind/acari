@@ -19,7 +19,7 @@ pub struct CachedClient {
 
 impl CachedClient {
   pub fn new(domain: &str, token: &str, cache_ttl: Duration) -> Result<CachedClient, AcariError> {
-    let cache_dir = cache_dir();
+    let cache_dir = cache_dir().join(domain);
 
     fs::create_dir_all(&cache_dir)?;
 
