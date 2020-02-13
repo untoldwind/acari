@@ -7,7 +7,7 @@ pub fn init(maybe_existing_config: Option<Config>, maybe_profile: Option<&str>) 
     Some(existing) => {
       let confirm = match maybe_profile {
         Some(profile) if existing.profiles.contains_key(profile) => Some(format!("Overwrite existing {} profile (yes/No): ", profile)),
-        None if existing.domain.len() > 0 || existing.token.len() > 0 => Some("Overwrite existing default profile (yes/No): ".to_string()),
+        None if !existing.domain.is_empty() || !existing.token.is_empty() => Some("Overwrite existing default profile (yes/No): ".to_string()),
         _ => None,
       };
       if let Some(msg) = confirm {
@@ -15,7 +15,7 @@ pub fn init(maybe_existing_config: Option<Config>, maybe_profile: Option<&str>) 
           return Ok(());
         }
       }
-      existing.clone()
+      existing
     }
     None => Config {
       cache_ttl_minutes: 1440,
