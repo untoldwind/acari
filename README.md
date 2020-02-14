@@ -148,6 +148,11 @@ Whereas `date` can be
 
 **Note**: If the specified day contains multiple entries for the same cuatomer, project and service these will be squisched down to a single entry. The idea of the set command is to just set the time spend on a task for the day entirely.
 
+Alternatively, if you simply want to add an entry without regarding any existing entries for that project/service, you can just use:
+```
+acari add <customer-name> <project-name> <service-name> <minutes>
+```
+
 ### Modify the output
 
 The output of all commandy can be modified via the `--output` or `-o` option. E.g.
@@ -159,3 +164,13 @@ Supported output formats are:
 * `pretty`: Show pretty tables (this is the default)
 * `json`: Dump all available information as json
 * `flat`: Very condensed form of `pretty` that may be helpful processing information in shell-scripts or `awk`
+
+### Profiles
+
+In case you have to track your time in multiple mite accounts, it is possible to create a profile for that by using the `--profile` or `-p` option. E.g.
+```
+acari --profile=<name> init
+acari --profile=<name> customers
+```
+
+... this is a pretty exotic use-case, unluckily one of mine, so ...
