@@ -1,6 +1,6 @@
 [package]
 name = "acari-cli"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["Bodo Junglas <junglas@objectcode.de>"]
 edition = "2018"
 license = "MIT"
