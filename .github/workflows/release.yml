@@ -8,6 +8,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
+    - uses: untoldwind/rust-musl-action@master
     - uses: actions/checkout@master
     - run: cargo login ${CRATES_IO_TOKEN}
       env:
@@ -22,6 +23,10 @@ jobs:
     - name: Publish cli
       run: cargo publish
       working-directory: ./cli
+    - name: Build
+      run: cargo build --release
+    - name: Strip binary
+      run: strip target/x86_64-unknown-linux-musl/release/acari
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
