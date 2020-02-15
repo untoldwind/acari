@@ -4,7 +4,7 @@
 
 ## Requirements
 
-Rust >=1.41.0
+Rust >=1.41.0 (unless you use the pre-compiled binaries)
 
 ## Installation
 
