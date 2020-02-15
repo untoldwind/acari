@@ -18,6 +18,8 @@ Alternative: Checkout the project and do
 cargo install --path cli --force --locked
 ```
 
+Or you can download the pre-compiled statically linked binaries from the releases page.
+
 ## Shell completions
 
 ### Fish
