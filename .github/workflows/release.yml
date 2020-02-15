@@ -8,31 +8,35 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
-    - uses: untoldwind/rust-musl-action@v1
+    - uses: untoldwind/rust-musl-action@v2
     - uses: actions/checkout@v2
-    - run: cargo login ${CRATES_IO_TOKEN}
-      env:
-        CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
-    - name: Publish lib
-      run: cargo publish
-      working-directory: ./lib
-    - name: Sleep for 15 seconds
-      uses: jakejarvis/wait-action@master
-      with:
-        time: '15s'
-    - name: Publish cli
-      run: cargo publish
-      working-directory: ./cli
+    # - run: cargo login ${CRATES_IO_TOKEN}
+    #   env:
+    #     CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+    # - name: Publish lib
+    #   run: cargo publish
+    #   working-directory: ./lib
+    # - name: Sleep for 15 seconds
+    #   uses: jakejarvis/wait-action@master
+    #   with:
+    #     time: '15s'
+    # - name: Publish cli
+    #   run: cargo publish
+    #   working-directory: ./cli
     - name: Build
       run: cargo build --release
     - name: Copy binary
-      run: target/x86_64-unknown-linux-musl/release/acari target/acari
+      run: cp ./target/release/acari ./target/acari
+      working-directory: .
     - name: Strip binary
-      run: strip target/acari
+      run: strip ./target/acari
+      working-directory: .
     - name: Create sha256sum
-      run: sha256sum target/acari > target/acari.sha256sum
+      run: sha256sum ./target/acari > ./target/acari.sha256sum
+      working-directory: .
     - name: Gzip
-      run: gzip target/acari
+      run: gzip ./target/acari
+      working-directory: .
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
