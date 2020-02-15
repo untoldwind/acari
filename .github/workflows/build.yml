@@ -10,14 +10,10 @@ jobs:
       with:
         args: cargo fmt -- --check
     - name: Check clippy
-      uses: docker://untoldwind/rust-musl-builder:latest
-      with:
-        args: cargo clippy -- -Dwarnings
+      run: cargo clippy -- -Dwarnings
+    - name: Test
+      run: cargo test --release
     - name: Build
       uses: docker://untoldwind/rust-musl-builder:latest
       with:
         args: cargo build --release
-    - name: Test
-      uses: docker://untoldwind/rust-musl-builder:latest
-      with:
-        args: cargo test --release --target x86_64-unknown-linux-musl
