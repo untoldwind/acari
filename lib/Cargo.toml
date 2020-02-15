@@ -1,6 +1,6 @@
 [package]
 name = "acari-lib"
-version = "0.1.6"
+version = "0.1.7"
 authors = ["Bodo Junglas <junglas@objectcode.de>"]
 edition = "2018"
 license = "MIT"

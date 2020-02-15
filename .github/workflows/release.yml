@@ -10,19 +10,19 @@ jobs:
     steps:
     - uses: untoldwind/rust-musl-action@v2
     - uses: actions/checkout@v2
-    # - run: cargo login ${CRATES_IO_TOKEN}
-    #   env:
-    #     CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
-    # - name: Publish lib
-    #   run: cargo publish
-    #   working-directory: ./lib
-    # - name: Sleep for 15 seconds
-    #   uses: jakejarvis/wait-action@master
-    #   with:
-    #     time: '15s'
-    # - name: Publish cli
-    #   run: cargo publish
-    #   working-directory: ./cli
+    - run: cargo login ${CRATES_IO_TOKEN}
+      env:
+        CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+    - name: Publish lib
+      run: cargo publish
+      working-directory: ./lib
+    - name: Sleep for 15 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '15s'
+    - name: Publish cli
+      run: cargo publish
+      working-directory: ./cli
     - name: Build
       run: cargo build --release
     - name: Copy binary
@@ -32,8 +32,8 @@ jobs:
       run: strip ./target/acari
       working-directory: .
     - name: Create sha256sum
-      run: sha256sum ./target/acari > ./target/acari.sha256sum
-      working-directory: .
+      run: sha256sum acari > acari.sha256sum
+      working-directory: ./target
     - name: Gzip
       run: gzip ./target/acari
       working-directory: .
