@@ -6,14 +6,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Check formatting
-      uses: docker://untoldwind/rust-musl-builder:latest
-      with:
-        args: cargo fmt -- --check
+      run: cargo fmt -- --check
     - name: Check clippy
       run: cargo clippy -- -Dwarnings
     - name: Test
       run: cargo test --release
     - name: Build
-      uses: docker://untoldwind/rust-musl-builder:latest
+      uses: docker://untoldwind/rust-musl-builder:v1.41.0
       with:
         args: cargo build --release
