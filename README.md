@@ -169,7 +169,7 @@ Supported output formats are:
 
 ### Profiles
 
-In case you have to track your time in multiple mite accounts, it is possible to create a profile for that by using the `--profile` or `-p` option. E.g.
+In case you have to track your time in multiple mite accounts, it is possible to create a profile for each additional account by using the `--profile` or `-p` option. E.g.
 ```
 acari --profile=<name> init
 acari --profile=<name> customers
