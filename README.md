@@ -99,7 +99,7 @@ acari entries <timespan>
 
 Whereas `timespan` can be
 * `today` or `now`: Just today
-* `yeasterday`: Just yesterday
+* `yesterday`: Just yesterday
 * `this-week` or `week`: All entries of this week
 * `last-week`: all entries of last week
 * `this-month` or `month`: all entries of this month
@@ -145,7 +145,7 @@ acari set <customer-name> <project-name> <service-name> <minutes> <date>
 
 Whereas `date` can be
 * `today` or `now`: Change today
-* `yeasterday`: Change yeasterday
+* `yesterday`: Change yesterday
 * `YYYY-MM-DD`: Change a specific day
 
 **Note**: If the specified day contains multiple entries for the same cuatomer, project and service these will be squisched down to a single entry. The idea of the set command is to just set the time spend on a task for the day entirely.
