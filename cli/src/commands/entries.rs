@@ -33,6 +33,8 @@ fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>, tracking_time_entry
     return;
   }
 
+  let mut total: Minutes = Default::default();
+  let show_total = entries.len() > 1;
   let mut entries_table = Table::new();
   entries_table.set_titles(row!["Day", "Time", "Customer", "Project", "Service"]);
   entries_table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
@@ -48,7 +50,8 @@ fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>, tracking_time_entry
         }
       })
       .sum::<Minutes>();
-    entries_table.add_row(row![bFc -> day, bFc -> sum, H3 -> " " ]);
+    total += sum;
+    entries_table.add_row(row![bFc -> day, bFc -> sum, "", "", ""]);
     for entry in group {
       if let Some(tracking_entry) = tracking_time_entry.filter(|t| t.id == entry.id) {
         entries_table.add_row(row![FY => "", tracking_entry.minutes, entry.customer_name, entry.project_name, entry.service_name]);
@@ -59,6 +62,11 @@ fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>, tracking_time_entry
       }
     }
   }
+  if show_total {
+    entries_table.add_row(row!["", "-----", "", "", ""]);
+    entries_table.add_row(row!["", bFw -> total, "", "", ""]);
+  }
+
   entries_table.printstd();
 }
 

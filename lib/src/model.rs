@@ -104,6 +104,12 @@ impl ops::Add for Minutes {
   }
 }
 
+impl ops::AddAssign for Minutes {
+  fn add_assign(&mut self, rhs: Self) {
+    self.0 += rhs.0;
+  }
+}
+
 impl std::iter::Sum<Minutes> for Minutes {
   fn sum<I: Iterator<Item = Minutes>>(iter: I) -> Self {
     Minutes(iter.map(|m| m.0).sum())

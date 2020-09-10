@@ -1,5 +1,6 @@
 use acari_lib::{user_error, AcariError, Minutes};
 use clap::{crate_description, crate_version, App, Arg, ArgMatches, SubCommand};
+use std::str;
 
 mod commands;
 mod config;
@@ -10,7 +11,7 @@ use config::Config;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
   openssl_probe::init_ssl_cert_env_vars();
 
-  let app = App::new("acari")
+  let mut app = App::new("acari")
     .version(crate_version!())
     .about(crate_description!())
     .arg(
@@ -77,7 +78,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .subcommand(SubCommand::with_name("tracking").about("Show currently tracked time entry"))
     .subcommand(SubCommand::with_name("profiles").about("List configured profiles"));
 
-  let matches = app.get_matches();
+  let mut help = Vec::new();
+  app.write_long_help(&mut help)?;
+
+  let matches = match app.get_matches_safe() {
+    Ok(matches) => matches,
+    Err(_) => {
+      println!("{}", str::from_utf8(&help)?);
+      return Ok(());
+    }
+  };
 
   let output_format = matches.value_of("output").map(OutputFormat::from_string).unwrap_or(Ok(OutputFormat::Pretty))?;
   let maybe_profile = matches.value_of("profile");
@@ -129,7 +139,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       ("stop", _) => commands::stop(client.as_ref(), output_format)?,
       ("tracking", _) => commands::tracking(client.as_ref(), output_format)?,
       ("profiles", _) => commands::profiles(config),
-      (invalid, _) => return Err(AcariError::UserError(format!("Unknown command: {}", invalid)).into()),
+      (_, _) => {
+        println!("{}", str::from_utf8(&help)?);
+      }
     }
   } else {
     return Err(AcariError::UserError("Missing configuration, run init first".to_string()).into());
