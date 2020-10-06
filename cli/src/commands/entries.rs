@@ -1,9 +1,22 @@
 use super::OutputFormat;
 use acari_lib::{AcariError, Client, DateSpan, Minutes, TimeEntry, TrackingTimeEntry};
 use chrono::NaiveDate;
+use clap::Clap;
 use itertools::Itertools;
 use prettytable::{cell, format, row, Table};
 use serde_json::{json, Value};
+
+#[derive(Clap, PartialEq, Eq)]
+pub struct EntriesCmd {
+  #[clap(about = "Date span to query\n(today, yesterday, this-week, last-week,\n this-month, last-month, yyyy-mm-dd, yyyy-mm-dd/yyyy-mm-dd)")]
+  span: DateSpan,
+}
+
+impl EntriesCmd {
+  pub fn run(&self, client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {
+    entries(client, output_format, self.span)
+  }
+}
 
 pub fn entries(client: &dyn Client, output_format: OutputFormat, date_span: DateSpan) -> Result<(), AcariError> {
   let tracker = client.get_tracker()?;

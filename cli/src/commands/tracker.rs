@@ -1,49 +1,57 @@
 use super::OutputFormat;
 use super::{find_customer, find_project, find_service};
 use acari_lib::{AcariError, Client, Day, Minutes, TimeEntry, Tracker};
+use clap::Clap;
 use prettytable::{cell, format, row, table};
 use serde_json::json;
 
-pub fn start(
-  client: &dyn Client,
-  output_format: OutputFormat,
-  customer_name: &str,
-  project_name: &str,
-  service_name: &str,
-  minutes_offset: Option<Minutes>,
-) -> Result<(), AcariError> {
-  let customer = find_customer(client, customer_name)?;
-  let project = find_project(client, customer.id, project_name)?;
-  let service = find_service(client, service_name)?;
-  let date = Day::Today.as_date();
+#[derive(Clap, PartialEq, Eq)]
+pub struct StartCmd {
+  #[clap(about = "Customer name")]
+  customer: String,
+  #[clap(about = "Project name")]
+  project: String,
+  #[clap(about = "Service name")]
+  service: String,
+  #[clap(about = "Optional: Starting offset (minutes or hh:mm)")]
+  offset: Option<Minutes>,
+}
 
-  let maybe_existing = match minutes_offset {
-    Some(_) => None,
-    None => {
-      let mut existing: Vec<TimeEntry> = client
-        .get_time_entries(date.into())?
-        .into_iter()
-        .filter(|e| e.date_at == date && e.customer_id == customer.id && e.project_id == project.id && e.service_id == service.id)
-        .collect();
+impl StartCmd {
+  pub fn run(&self, client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {
+    let customer = find_customer(client, &self.customer)?;
+    let project = find_project(client, customer.id, &self.project)?;
+    let service = find_service(client, &self.service)?;
+    let date = Day::Today.as_date();
 
-      existing.sort_by(|e1, e2| e2.updated_at.cmp(&e1.updated_at));
+    let maybe_existing = match self.offset {
+      Some(_) => None,
+      None => {
+        let mut existing: Vec<TimeEntry> = client
+          .get_time_entries(date.into())?
+          .into_iter()
+          .filter(|e| e.date_at == date && e.customer_id == customer.id && e.project_id == project.id && e.service_id == service.id)
+          .collect();
 
-      existing.into_iter().next()
+        existing.sort_by(|e1, e2| e2.updated_at.cmp(&e1.updated_at));
+
+        existing.into_iter().next()
+      }
+    };
+    let entry = match maybe_existing {
+      Some(existing) => existing,
+      None => client.create_time_entry(date.into(), project.id, service.id, self.offset.unwrap_or_default())?,
+    };
+    let tracker = client.create_tracker(entry.id)?;
+
+    match output_format {
+      OutputFormat::Pretty => print_pretty(Some(entry), tracker),
+      OutputFormat::Json => print_json(Some(entry), tracker)?,
+      OutputFormat::Flat => print_flat(Some(entry), tracker),
     }
-  };
-  let entry = match maybe_existing {
-    Some(existing) => existing,
-    None => client.create_time_entry(date.into(), project.id, service.id, minutes_offset.unwrap_or_default())?,
-  };
-  let tracker = client.create_tracker(entry.id)?;
 
-  match output_format {
-    OutputFormat::Pretty => print_pretty(Some(entry), tracker),
-    OutputFormat::Json => print_json(Some(entry), tracker)?,
-    OutputFormat::Flat => print_flat(Some(entry), tracker),
+    Ok(())
   }
-
-  Ok(())
 }
 
 pub fn tracking(client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {

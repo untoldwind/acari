@@ -1,7 +1,16 @@
 use super::OutputFormat;
 use acari_lib::{AcariError, Client, Service};
+use clap::Clap;
 use itertools::Itertools;
 use prettytable::{cell, row, table};
+
+#[derive(Clap, PartialEq, Eq)]
+pub struct ServicesCommand {
+  #[clap(about = "Customer name")]
+  customer: String,
+  #[clap(about = "Project name")]
+  project: String,
+}
 
 pub fn services(client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {
   let mut services = client.get_services()?;

@@ -1,22 +1,30 @@
 use super::OutputFormat;
 use super::{entries, find_customer, find_project, find_service};
 use acari_lib::{AcariError, Client, Day, Minutes};
+use clap::Clap;
 
-pub fn add(
-  client: &dyn Client,
-  output_format: OutputFormat,
-  customer_name: &str,
-  project_name: &str,
-  service_name: &str,
-  minutes: Minutes,
-  maybe_day: Option<Day>,
-) -> Result<(), AcariError> {
-  let customer = find_customer(client, customer_name)?;
-  let project = find_project(client, customer.id, project_name)?;
-  let service = find_service(client, service_name)?;
-  let date = maybe_day.unwrap_or(Day::Today).as_date();
+#[derive(Clap, PartialEq, Eq)]
+pub struct AddCmd {
+  #[clap(about = "Customer name")]
+  customer: String,
+  #[clap(about = "Project name")]
+  project: String,
+  #[clap(about = "Service name")]
+  service: String,
+  #[clap(about = "Time (minutes or hh:mm)")]
+  time: Minutes,
+  #[clap(about = "Date", default_value = "today")]
+  day: Day,
+}
 
-  client.create_time_entry(maybe_day.unwrap_or(Day::Today), project.id, service.id, minutes)?;
+impl AddCmd {
+  pub fn run(&self, client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {
+    let customer = find_customer(client, &self.customer)?;
+    let project = find_project(client, customer.id, &self.project)?;
+    let service = find_service(client, &self.service)?;
 
-  entries(client, output_format, date.into())
+    client.create_time_entry(self.day, project.id, service.id, self.time)?;
+
+    entries(client, output_format, self.day.into())
+  }
 }

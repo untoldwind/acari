@@ -36,7 +36,7 @@ impl Config {
     }
   }
 
-  pub fn client(&self, maybe_profile: Option<&str>, cached: bool) -> Result<Box<dyn Client>, AcariError> {
+  pub fn client(&self, maybe_profile: &Option<String>, cached: bool) -> Result<Box<dyn Client>, AcariError> {
     let (domain, token) = match maybe_profile {
       Some(profile_name) => {
         let profile = self

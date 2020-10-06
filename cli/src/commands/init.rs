@@ -2,7 +2,7 @@ use crate::config::{Config, Profile};
 use std::io::{stdout, Write};
 use text_io::try_read;
 
-pub fn init(maybe_existing_config: Option<Config>, maybe_profile: Option<&str>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn init(maybe_existing_config: Option<Config>, maybe_profile: &Option<String>) -> Result<(), Box<dyn std::error::Error>> {
   let mut config = match maybe_existing_config {
     Some(existing) => {
       let confirm = match maybe_profile {

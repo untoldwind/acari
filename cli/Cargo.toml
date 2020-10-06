@@ -1,6 +1,6 @@
 [package]
 name = "acari-cli"
-version = "0.1.8"
+version = "0.1.9"
 authors = ["Bodo Junglas <junglas@objectcode.de>"]
 edition = "2018"
 license = "MIT"
@@ -12,7 +12,7 @@ keywords = ["mite", "mite-api", "time-tracking"]
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
-clap = "2"
+clap = "3.0.0-beta.2"
 dirs = "2"
 toml = "0"
 text_io = "0"

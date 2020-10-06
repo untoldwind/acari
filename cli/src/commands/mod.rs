@@ -1,3 +1,5 @@
+use clap::Clap;
+
 mod add;
 mod all_projects;
 mod check;
@@ -6,6 +8,7 @@ mod customers;
 mod entries;
 mod init;
 mod profiles;
+mod projects;
 mod projects_of_customer;
 mod services;
 mod set;
@@ -19,6 +22,7 @@ pub use customers::*;
 pub use entries::*;
 pub use init::*;
 pub use profiles::*;
+pub use projects::*;
 pub use projects_of_customer::*;
 pub use services::*;
 pub use set::*;
@@ -26,21 +30,11 @@ pub use tracker::*;
 
 use acari_lib::{user_error, AcariError, Client, Customer, CustomerId, Project, Service};
 
+#[derive(Clap, Debug, PartialEq)]
 pub enum OutputFormat {
   Pretty,
   Json,
   Flat,
-}
-
-impl OutputFormat {
-  pub fn from_string(format: &str) -> Result<OutputFormat, AcariError> {
-    match format {
-      "pretty" => Ok(OutputFormat::Pretty),
-      "json" => Ok(OutputFormat::Json),
-      "flat" => Ok(OutputFormat::Flat),
-      format => Err(AcariError::UserError(format!("Invalid output format: {}", format))),
-    }
-  }
 }
 
 fn find_customer(client: &dyn Client, customer_name: &str) -> Result<Customer, AcariError> {
