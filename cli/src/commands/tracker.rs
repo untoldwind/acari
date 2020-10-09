@@ -126,8 +126,8 @@ fn print_pretty(maybe_entry: Option<TimeEntry>, tracker: Tracker) {
 fn print_json(maybe_entry: Option<TimeEntry>, tracker: Tracker) -> Result<(), AcariError> {
   match maybe_entry {
     Some(entry) => {
-      if tracker.tracking_time_entry.filter(|t| t.id == entry.id).is_some() {
-        println!("{}", serde_json::to_string_pretty(&json!({ "tracking": entry }))?);
+      if let Some(tracking_entry) = tracker.tracking_time_entry.filter(|t| t.id == entry.id) {
+        println!("{}", serde_json::to_string_pretty(&json!({ "entry": entry, "tracking": tracking_entry }))?);
       } else if tracker.stopped_time_entry.filter(|t| t.id == entry.id).is_some() {
         println!("{}", serde_json::to_string_pretty(&json!({ "stopped": entry }))?);
       } else {
@@ -142,10 +142,10 @@ fn print_json(maybe_entry: Option<TimeEntry>, tracker: Tracker) -> Result<(), Ac
 fn print_flat(maybe_entry: Option<TimeEntry>, tracker: Tracker) {
   match maybe_entry {
     Some(entry) => {
-      if tracker.tracking_time_entry.filter(|t| t.id == entry.id).is_some() {
+      if let Some(tracking_entry) = tracker.tracking_time_entry.filter(|t| t.id == entry.id) {
         println!(
           "Tracking {}\t{}\t{}\t{}\t{}",
-          entry.date_at, entry.customer_name, entry.project_name, entry.service_name, entry.minutes,
+          entry.date_at, entry.customer_name, entry.project_name, entry.service_name, tracking_entry.minutes,
         );
       } else if tracker.stopped_time_entry.filter(|t| t.id == entry.id).is_some() {
         println!(
