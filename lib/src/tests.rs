@@ -357,7 +357,8 @@ fn test_create_entry() -> Result<(), Box<dyn std::error::Error>> {
               "date_at": "2015-09-15",
               "minutes": 185,
               "project_id": 3456,
-              "service_id": 243
+              "service_id": 243,
+              "note": "",
            }
         }))
         .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
@@ -391,7 +392,7 @@ fn test_create_entry() -> Result<(), Box<dyn std::error::Error>> {
   url.set_username("12345678").unwrap();
   let client = StdClient::new_form_url(url);
 
-  let entry = client.create_time_entry(Day::Date(NaiveDate::from_ymd(2015, 9, 15)), ProjectId(3456), ServiceId(243), Minutes(185))?;
+  let entry = client.create_time_entry(Day::Date(NaiveDate::from_ymd(2015, 9, 15)), ProjectId(3456), ServiceId(243), Minutes(185), None)?;
 
   assert_eq!(
     TimeEntry {
@@ -452,7 +453,8 @@ fn test_update_entry() -> Result<(), Box<dyn std::error::Error>> {
         .path("/time_entries/52324.json")
         .json_body(json!({
            "time_entry": {
-              "minutes": 120
+              "minutes": 120,
+              "note": "",
            }
         }))
         .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
@@ -465,7 +467,7 @@ fn test_update_entry() -> Result<(), Box<dyn std::error::Error>> {
   url.set_username("12345678").unwrap();
   let client = StdClient::new_form_url(url);
 
-  client.update_time_entry(TimeEntryId(52324), Minutes(120))?;
+  client.update_time_entry(TimeEntryId(52324), Minutes(120), None)?;
 
   Ok(())
 }

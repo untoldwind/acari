@@ -15,6 +15,8 @@ pub struct StartCmd {
   service: String,
   #[clap(about = "Optional: Starting offset (minutes or hh:mm)")]
   offset: Option<Minutes>,
+  #[clap(short, long, about = "Optional note")]
+  note: Option<String>,
 }
 
 impl StartCmd {
@@ -40,7 +42,7 @@ impl StartCmd {
     };
     let entry = match maybe_existing {
       Some(existing) => existing,
-      None => client.create_time_entry(date.into(), project.id, service.id, self.offset.unwrap_or_default())?,
+      None => client.create_time_entry(date.into(), project.id, service.id, self.offset.unwrap_or_default(), self.note.clone())?,
     };
     let tracker = client.create_tracker(entry.id)?;
 

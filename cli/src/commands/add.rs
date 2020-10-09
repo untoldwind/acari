@@ -15,6 +15,8 @@ pub struct AddCmd {
   time: Minutes,
   #[clap(about = "Date", default_value = "today")]
   day: Day,
+  #[clap(short, long, about = "Optional note")]
+  note: Option<String>,
 }
 
 impl AddCmd {
@@ -23,7 +25,7 @@ impl AddCmd {
     let project = find_project(client, customer.id, &self.project)?;
     let service = find_service(client, &self.service)?;
 
-    client.create_time_entry(self.day, project.id, service.id, self.time)?;
+    client.create_time_entry(self.day, project.id, service.id, self.time, self.note.clone())?;
 
     entries(client, output_format, self.day.into())
   }

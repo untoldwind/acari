@@ -89,12 +89,12 @@ impl Client for CachedClient {
     self.client.get_time_entries(date_span) // This should not be cached
   }
 
-  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: Minutes) -> Result<TimeEntry, AcariError> {
-    self.client.create_time_entry(day, project_id, service_id, minutes)
+  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: Minutes, note: Option<String>) -> Result<TimeEntry, AcariError> {
+    self.client.create_time_entry(day, project_id, service_id, minutes, note)
   }
 
-  fn update_time_entry(&self, entry_id: TimeEntryId, minutes: Minutes) -> Result<(), AcariError> {
-    self.client.update_time_entry(entry_id, minutes)
+  fn update_time_entry(&self, entry_id: TimeEntryId, minutes: Minutes, note: Option<String>) -> Result<(), AcariError> {
+    self.client.update_time_entry(entry_id, minutes, note)
   }
 
   fn delete_time_entry(&self, entry_id: TimeEntryId) -> Result<(), AcariError> {

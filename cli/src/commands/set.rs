@@ -15,6 +15,8 @@ pub struct SetCmd {
   time: Minutes,
   #[clap(about = "Date", default_value = "today")]
   day: Day,
+  #[clap(short, long, about = "Optional note")]
+  note: Option<String>,
 }
 
 impl SetCmd {
@@ -28,12 +30,12 @@ impl SetCmd {
     time_entries.retain(|e| e.date_at == date && e.customer_id == customer.id && e.project_id == project.id && e.service_id == service.id);
 
     if let Some(first) = time_entries.first() {
-      client.update_time_entry(first.id, self.time)?;
+      client.update_time_entry(first.id, self.time, self.note.clone())?;
       for remaining in &time_entries[1..] {
         client.delete_time_entry(remaining.id)?;
       }
     } else {
-      client.create_time_entry(self.day, project.id, service.id, self.time)?;
+      client.create_time_entry(self.day, project.id, service.id, self.time, self.note.clone())?;
     }
 
     entries(client, output_format, date.into())

@@ -30,9 +30,9 @@ pub trait Client {
 
   fn get_time_entries(&self, date_span: DateSpan) -> Result<Vec<TimeEntry>, AcariError>;
 
-  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: Minutes) -> Result<TimeEntry, AcariError>;
+  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: Minutes, note: Option<String>) -> Result<TimeEntry, AcariError>;
 
-  fn update_time_entry(&self, entry_id: TimeEntryId, minutes: Minutes) -> Result<(), AcariError>;
+  fn update_time_entry(&self, entry_id: TimeEntryId, minutes: Minutes, note: Option<String>) -> Result<(), AcariError>;
 
   fn delete_time_entry(&self, entry_id: TimeEntryId) -> Result<(), AcariError>;
 

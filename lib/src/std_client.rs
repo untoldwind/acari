@@ -140,7 +140,7 @@ impl Client for StdClient {
     )
   }
 
-  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: Minutes) -> Result<TimeEntry, AcariError> {
+  fn create_time_entry(&self, day: Day, project_id: ProjectId, service_id: ServiceId, minutes: Minutes, note: Option<String>) -> Result<TimeEntry, AcariError> {
     match self.request_with_body(
       Method::POST,
       "/time_entries.json",
@@ -150,6 +150,7 @@ impl Client for StdClient {
           "project_id": project_id,
           "service_id": service_id,
           "minutes": minutes,
+          "note": note.unwrap_or_else(|| "".to_string()),
         }
       }),
     )? {
@@ -158,13 +159,14 @@ impl Client for StdClient {
     }
   }
 
-  fn update_time_entry(&self, entry_id: TimeEntryId, minutes: Minutes) -> Result<(), AcariError> {
+  fn update_time_entry(&self, entry_id: TimeEntryId, minutes: Minutes, note: Option<String>) -> Result<(), AcariError> {
     self.request_empty_with_body(
       Method::PATCH,
       &format!("/time_entries/{}.json", entry_id),
       json!({
         "time_entry": {
           "minutes": minutes,
+          "note": note.unwrap_or_else(|| "".to_string()),
         }
       }),
     )
