@@ -1,4 +1,4 @@
-use crate::config::{Config, Profile};
+use crate::config::{ClientType, Config, Profile};
 use std::io::{stdout, Write};
 use text_io::try_read;
 
@@ -28,7 +28,14 @@ pub fn init(maybe_existing_config: Option<Config>, maybe_profile: &Option<String
 
   match maybe_profile {
     Some(profile) => {
-      config.profiles.insert(profile.to_string(), Profile { domain, token });
+      config.profiles.insert(
+        profile.to_string(),
+        Profile {
+          domain,
+          token,
+          client: ClientType::Mite,
+        },
+      );
     }
     None => {
       config.domain = domain;

@@ -22,8 +22,12 @@ fn print_pretty(projects: Vec<Project>) {
   projects_table.set_titles(row!["Projects"]);
   projects_table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
 
-  for customer in projects {
-    projects_table.add_row(row![customer.name]);
+  for project in projects {
+    if project.archived {
+      projects_table.add_row(row![FY => project.name]);
+    } else {
+      projects_table.add_row(row![project.name]);
+    }
   }
   projects_table.printstd();
 }
@@ -36,6 +40,8 @@ fn print_json(projects: Vec<Project>) -> Result<(), AcariError> {
 
 fn print_flat(projects: Vec<Project>) {
   for project in projects {
-    println!("{}", project.name);
+    if !project.archived {
+      println!("{}", project.name);
+    }
   }
 }

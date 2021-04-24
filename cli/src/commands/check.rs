@@ -22,8 +22,7 @@ fn print_pretty(account: Account, user: User) {
     ["Name", account.name],
     ["Title", account.title],
     ["Currency", account.currency],
-    ["Created at", account.created_at.to_string()],
-    ["Updated at", account.updated_at.to_string()]
+    ["Created at", account.created_at.to_string()]
   );
 
   println!("Account");
@@ -36,8 +35,7 @@ fn print_pretty(account: Account, user: User) {
     ["Email", user.email],
     ["Role", user.role],
     ["Language", user.language],
-    ["Created at", user.created_at.to_string()],
-    ["Updated at", user.updated_at.to_string()]
+    ["Created at", user.created_at.to_string()]
   );
 
   println!();

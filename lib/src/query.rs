@@ -10,14 +10,6 @@ pub enum Day {
 }
 
 impl Day {
-  pub fn query_param(self) -> String {
-    match self {
-      Day::Today => "today".to_string(),
-      Day::Yesterday => "yesterday".to_string(),
-      Day::Date(date) => format!("{}", date),
-    }
-  }
-
   pub fn as_date(self) -> NaiveDate {
     match self {
       Day::Today => Local::now().naive_local().date(),
@@ -53,19 +45,6 @@ pub enum DateSpan {
   LastMonth,
   Day(Day),
   FromTo(NaiveDate, NaiveDate),
-}
-
-impl DateSpan {
-  pub fn query_param(&self) -> String {
-    match self {
-      DateSpan::ThisWeek => "at=this_week".to_string(),
-      DateSpan::LastWeek => "at=last_week".to_string(),
-      DateSpan::ThisMonth => "at=this_month".to_string(),
-      DateSpan::LastMonth => "at=last_month".to_string(),
-      DateSpan::Day(date) => format!("at={}", date.query_param()),
-      DateSpan::FromTo(from, to) => format!("from={}&to={}", from, to),
-    }
-  }
 }
 
 impl FromStr for DateSpan {

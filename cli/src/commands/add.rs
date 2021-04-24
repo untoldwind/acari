@@ -22,10 +22,10 @@ pub struct AddCmd {
 impl AddCmd {
   pub fn run(&self, client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {
     let customer = find_customer(client, &self.customer)?;
-    let project = find_project(client, customer.id, &self.project)?;
-    let service = find_service(client, &self.service)?;
+    let project = find_project(client, &customer.id, &self.project)?;
+    let service = find_service(client, &project.id, &self.service)?;
 
-    client.create_time_entry(self.day, project.id, service.id, self.time, self.note.clone())?;
+    client.create_time_entry(self.day, &project.id, &service.id, self.time, self.note.clone())?;
 
     entries(client, output_format, self.day.into())
   }

@@ -1,4 +1,4 @@
-use acari_lib::AcariError;
+use acari_lib::{clear_cache, AcariError};
 use clap::Clap;
 use std::str;
 
@@ -43,7 +43,7 @@ enum SubCommand {
   #[clap(about = "List all projects")]
   Projects(commands::ProjectsCmd),
   #[clap(about = "List all services")]
-  Services,
+  Services(commands::ServicesCommand),
   #[clap(about = "Set time for a project at specific day")]
   Set(commands::SetCmd),
   #[clap(about = "Start tracking time")]
@@ -67,12 +67,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     match opts.subcommand {
       SubCommand::Add(add_cmd) => add_cmd.run(client.as_ref(), opts.output)?,
       SubCommand::Check => commands::check(client.as_ref(), opts.output)?,
-      SubCommand::ClearCache => commands::clear_cache()?,
+      SubCommand::ClearCache => clear_cache()?,
       SubCommand::Customers => commands::customers(client.as_ref(), opts.output)?,
       SubCommand::Entries(entries_cmd) => entries_cmd.run(client.as_ref(), opts.output)?,
       SubCommand::Profiles => commands::profiles(config),
       SubCommand::Projects(projects_cmd) => projects_cmd.run(client.as_ref(), opts.output)?,
-      SubCommand::Services => commands::services(client.as_ref(), opts.output)?,
+      SubCommand::Services(services_cmd) => services_cmd.run(client.as_ref(), opts.output)?,
       SubCommand::Set(set_cmd) => set_cmd.run(client.as_ref(), opts.output)?,
       SubCommand::Start(start_cmd) => start_cmd.run(client.as_ref(), opts.output)?,
       SubCommand::Stop => commands::stop(client.as_ref(), opts.output)?,

@@ -1,4 +1,4 @@
-use acari_lib::{internal_error, AcariError, CachedClient, Client, StdClient};
+use acari_lib::{internal_error, AcariError, CachedClient, Client, EverhourClient, MiteClient};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::{self, File};
@@ -7,15 +7,32 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum ClientType {
+  Mite,
+  Everhour,
+}
+
+impl Default for ClientType {
+  fn default() -> Self {
+    ClientType::Mite
+  }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Profile {
   pub domain: String,
   pub token: String,
+  #[serde(default)]
+  pub client: ClientType,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Config {
   pub domain: String,
   pub token: String,
+  #[serde(default)]
+  pub client: ClientType,
   #[serde(default = "default_cache_ttl")]
   pub cache_ttl_minutes: u64,
   #[serde(default)]
@@ -37,21 +54,28 @@ impl Config {
   }
 
   pub fn client(&self, maybe_profile: &Option<String>, cached: bool) -> Result<Box<dyn Client>, AcariError> {
-    let (domain, token) = match maybe_profile {
+    let (domain, token, client) = match maybe_profile {
       Some(profile_name) => {
         let profile = self
           .profiles
           .get(profile_name)
           .ok_or_else(|| AcariError::UserError(format!("No such profile: {}", profile_name)))?;
-        (&profile.domain, &profile.token)
+        (&profile.domain, &profile.token, &profile.client)
       }
-      None => (&self.domain, &self.token),
+      None => (&self.domain, &self.token, &self.client),
     };
-    if cached {
-      Ok(Box::new(CachedClient::new(domain, token, Duration::from_secs(self.cache_ttl_minutes * 60))?))
-    } else {
-      Ok(Box::new(StdClient::new(domain, token)?))
-    }
+    Ok(match client {
+      ClientType::Mite if cached => Box::new(CachedClient::new(
+        MiteClient::new(domain, token)?,
+        Duration::from_secs(self.cache_ttl_minutes * 60),
+      )?),
+      ClientType::Mite => Box::new(MiteClient::new(domain, token)?),
+      ClientType::Everhour if cached => Box::new(CachedClient::new(
+        EverhourClient::new(domain, token)?,
+        Duration::from_secs(self.cache_ttl_minutes * 60),
+      )?),
+      ClientType::Everhour => Box::new(EverhourClient::new(domain, token)?),
+    })
   }
 
   pub fn write(&self) -> Result<(), Box<dyn std::error::Error>> {

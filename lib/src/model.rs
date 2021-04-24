@@ -1,20 +1,102 @@
 use crate::error::AcariError;
 use crate::user_error;
 use chrono::{DateTime, NaiveDate, Utc};
-use serde::{Deserialize, Serialize};
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+use serde::de::{Error, Visitor};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 use std::ops;
 use std::str::FromStr;
 
 macro_rules! id_wrapper {
   ($name: ident) => {
-    #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
-    #[serde(transparent)]
-    pub struct $name(pub u32);
+    #[derive(Debug, PartialEq, Eq, Clone, Hash)]
+    pub enum $name {
+      Num(u64),
+      Str(String),
+    }
+
+    impl $name {
+      pub fn str_encoded(&self) -> String {
+        match self {
+          $name::Num(n) => format!("n{}", n),
+          $name::Str(s) => format!("s{}", s),
+        }
+      }
+
+      pub fn parse_encoded(s: &str) -> Result<$name, AcariError> {
+        match s.chars().next() {
+          Some('n') => Ok($name::Num(s[1..].parse::<u64>()?)),
+          Some('s') => Ok($name::Str(s[1..].to_string())),
+          _ => Err(AcariError::InternalError("Invalid id format".to_string())),
+        }
+      }
+
+      pub fn path_encoded(&self) -> String {
+        match self {
+          $name::Num(n) => n.to_string(),
+          $name::Str(s) => utf8_percent_encode(&s, NON_ALPHANUMERIC).to_string(),
+        }
+      }
+    }
+
+    impl Default for $name {
+      fn default() -> Self {
+        $name::Num(0)
+      }
+    }
+
+    impl Serialize for $name {
+      fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+      where
+        S: Serializer,
+      {
+        match self {
+          $name::Num(n) => serializer.serialize_u64(*n),
+          $name::Str(s) => serializer.serialize_str(s),
+        }
+      }
+    }
+
+    impl<'de> Deserialize<'de> for $name {
+      fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+      where
+        D: Deserializer<'de>,
+      {
+        struct EnumVisitor;
+
+        impl<'de> Visitor<'de> for EnumVisitor {
+          type Value = $name;
+
+          fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("integer or string")
+          }
+
+          fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+          where
+            E: Error,
+          {
+            Ok($name::Num(v))
+          }
+
+          fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+          where
+            E: Error,
+          {
+            Ok($name::Str(v.to_string()))
+          }
+        }
+
+        deserializer.deserialize_any(EnumVisitor)
+      }
+    }
 
     impl fmt::Display for $name {
       fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+        match self {
+          $name::Num(n) => write!(f, "{}", n),
+          $name::Str(s) => write!(f, "{}", s),
+        }
       }
     }
   };
@@ -34,7 +116,6 @@ pub struct Account {
   pub title: String,
   pub currency: String,
   pub created_at: DateTime<Utc>,
-  pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -47,7 +128,6 @@ pub struct User {
   pub language: String,
   pub archived: bool,
   pub created_at: DateTime<Utc>,
-  pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -55,10 +135,8 @@ pub struct Customer {
   pub id: CustomerId,
   pub name: String,
   pub note: String,
-  pub hourly_rate: Option<u32>,
   pub archived: bool,
   pub created_at: DateTime<Utc>,
-  pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -68,12 +146,8 @@ pub struct Project {
   pub customer_id: CustomerId,
   pub customer_name: String,
   pub note: String,
-  pub budget: u32,
-  pub budget_type: String,
-  pub hourly_rate: Option<u32>,
   pub archived: bool,
   pub created_at: DateTime<Utc>,
-  pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -81,11 +155,35 @@ pub struct Service {
   pub id: ServiceId,
   pub name: String,
   pub note: String,
-  pub hourly_rate: Option<u32>,
   pub billable: bool,
   pub archived: bool,
   pub created_at: DateTime<Utc>,
-  pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct TimeEntry {
+  pub id: TimeEntryId,
+  pub date_at: NaiveDate,
+  pub minutes: Minutes,
+  pub customer_id: CustomerId,
+  pub customer_name: String,
+  pub project_id: ProjectId,
+  pub project_name: String,
+  pub service_id: ServiceId,
+  pub service_name: String,
+  pub user_id: UserId,
+  pub user_name: String,
+  pub note: String,
+  pub billable: bool,
+  pub locked: bool,
+  pub created_at: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct Tracker {
+  pub since: Option<DateTime<Utc>>,
+  pub tracking_time_entry: Option<TimeEntry>,
+  pub stopped_time_entry: Option<TimeEntry>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy, Default)]
@@ -136,53 +234,6 @@ impl FromStr for Minutes {
       None => Ok(Minutes(s.parse::<u32>().map_err(|e| user_error!("Invalid time format: {}", e))?)),
     }
   }
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct TimeEntry {
-  pub id: TimeEntryId,
-  pub date_at: NaiveDate,
-  pub minutes: Minutes,
-  pub customer_id: CustomerId,
-  pub customer_name: String,
-  pub project_id: ProjectId,
-  pub project_name: String,
-  pub service_id: ServiceId,
-  pub service_name: String,
-  pub user_id: UserId,
-  pub user_name: String,
-  pub note: String,
-  pub billable: bool,
-  pub locked: bool,
-  pub hourly_rate: u32,
-  pub created_at: DateTime<Utc>,
-  pub updated_at: DateTime<Utc>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
-pub struct TrackingTimeEntry {
-  pub id: TimeEntryId,
-  pub minutes: Minutes,
-  pub since: Option<DateTime<Utc>>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-pub struct Tracker {
-  pub tracking_time_entry: Option<TrackingTimeEntry>,
-  pub stopped_time_entry: Option<TrackingTimeEntry>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-#[serde(rename_all = "snake_case")]
-pub enum MiteEntity {
-  Account(Account),
-  User(User),
-  Customer(Customer),
-  Project(Project),
-  Service(Service),
-  TimeEntry(TimeEntry),
-  Tracker(Tracker),
-  Error(String),
 }
 
 #[cfg(test)]

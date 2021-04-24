@@ -12,6 +12,6 @@ jobs:
     - name: Test
       run: cargo test --release
     - name: Build
-      uses: docker://untoldwind/rust-musl-builder:v1.41.0
+      uses: docker://untoldwind/rust-musl-builder:v1.52.0
       with:
         args: cargo build --release

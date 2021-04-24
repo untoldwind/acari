@@ -22,7 +22,11 @@ fn print_pretty(customers: Vec<Customer>) {
   customers_table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
 
   for customer in customers {
-    customers_table.add_row(row![customer.name]);
+    if customer.archived {
+      customers_table.add_row(row![FY => customer.name]);
+    } else {
+      customers_table.add_row(row![customer.name]);
+    }
   }
   customers_table.printstd();
 }
@@ -35,6 +39,8 @@ fn print_json(customers: Vec<Customer>) -> Result<(), AcariError> {
 
 fn print_flat(customers: Vec<Customer>) {
   for customer in customers {
-    println!("{}", customer.name);
+    if !customer.archived {
+      println!("{}", customer.name);
+    }
   }
 }

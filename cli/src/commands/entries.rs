@@ -1,5 +1,5 @@
 use super::OutputFormat;
-use acari_lib::{AcariError, Client, DateSpan, Minutes, TimeEntry, TrackingTimeEntry};
+use acari_lib::{AcariError, Client, DateSpan, Minutes, TimeEntry};
 use chrono::NaiveDate;
 use clap::Clap;
 use itertools::Itertools;
@@ -32,15 +32,15 @@ pub fn entries(client: &dyn Client, output_format: OutputFormat, date_span: Date
     .collect();
 
   match output_format {
-    OutputFormat::Pretty => print_pretty(grouped, tracker.tracking_time_entry),
-    OutputFormat::Json => print_json(time_entries, tracker.tracking_time_entry)?,
+    OutputFormat::Pretty => print_pretty(grouped, &tracker.tracking_time_entry),
+    OutputFormat::Json => print_json(time_entries, &tracker.tracking_time_entry)?,
     OutputFormat::Flat => print_flat(grouped, tracker.tracking_time_entry),
   }
 
   Ok(())
 }
 
-fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>, tracking_time_entry: Option<TrackingTimeEntry>) {
+fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>, tracking_time_entry: &Option<TimeEntry>) {
   if entries.is_empty() {
     println!("No entries found");
     return;
@@ -56,7 +56,7 @@ fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>, tracking_time_entry
     let sum = group
       .iter()
       .map(|e| {
-        if let Some(tracking_entry) = tracking_time_entry.filter(|t| t.id == e.id) {
+        if let Some(tracking_entry) = tracking_time_entry.as_ref().filter(|t| t.id == e.id) {
           tracking_entry.minutes
         } else {
           e.minutes
@@ -66,7 +66,7 @@ fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>, tracking_time_entry
     total += sum;
     entries_table.add_row(row![bFc -> day, bFc -> sum, "", "", "", ""]);
     for entry in group {
-      if let Some(tracking_entry) = tracking_time_entry.filter(|t| t.id == entry.id) {
+      if let Some(tracking_entry) = tracking_time_entry.as_ref().filter(|t| t.id == entry.id) {
         entries_table.add_row(row![FY => "", tracking_entry.minutes, entry.customer_name, entry.project_name, entry.service_name, entry.note]);
       } else if entry.locked {
         entries_table.add_row(row![Fr => "", entry.minutes, entry.customer_name, entry.project_name, entry.service_name, entry.note]);
@@ -83,12 +83,12 @@ fn print_pretty(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>, tracking_time_entry
   entries_table.printstd();
 }
 
-fn print_json(entries: Vec<TimeEntry>, tracking_time_entry: Option<TrackingTimeEntry>) -> Result<(), AcariError> {
+fn print_json(entries: Vec<TimeEntry>, tracking_time_entry: &Option<TimeEntry>) -> Result<(), AcariError> {
   let json_entries: Result<Vec<Value>, AcariError> = entries
     .into_iter()
     .map(|entry| match serde_json::to_value(&entry)? {
       Value::Object(mut fields) => {
-        if let Some(tracking_entry) = tracking_time_entry.filter(|t| t.id == entry.id) {
+        if let Some(tracking_entry) = tracking_time_entry.as_ref().filter(|t| t.id == entry.id) {
           fields.insert("tracking".to_string(), Value::Bool(true));
           fields["minutes"] = json!(tracking_entry.minutes);
         } else {
@@ -104,10 +104,10 @@ fn print_json(entries: Vec<TimeEntry>, tracking_time_entry: Option<TrackingTimeE
   Ok(())
 }
 
-fn print_flat(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>, tracking_time_entry: Option<TrackingTimeEntry>) {
+fn print_flat(entries: Vec<(&NaiveDate, Vec<&TimeEntry>)>, tracking_time_entry: Option<TimeEntry>) {
   for (date, group) in entries {
     for entry in group {
-      if let Some(tracking_entry) = tracking_time_entry.filter(|t| t.id == entry.id) {
+      if let Some(tracking_entry) = tracking_time_entry.as_ref().filter(|t| t.id == entry.id) {
         println!(
           "{}\t{}\t{}\t{}\t{}\tTRACKING",
           date, entry.customer_name, entry.project_name, entry.service_name, tracking_entry.minutes,

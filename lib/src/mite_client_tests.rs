@@ -5,8 +5,8 @@ use pretty_assertions::assert_eq;
 use serde_json::json;
 
 use super::{
-  Account, AccountId, Client, Customer, CustomerId, DateSpan, Day, Minutes, Project, ProjectId, Service, ServiceId, StdClient, TimeEntry, TimeEntryId, Tracker,
-  TrackingTimeEntry, User, UserId,
+  Account, AccountId, Client, Customer, CustomerId, DateSpan, Day, Minutes, MiteClient, Project, ProjectId, Service, ServiceId, TimeEntry, TimeEntryId,
+  Tracker, User, UserId,
 };
 
 const CONSUMER: &str = "acari-lib";
@@ -33,18 +33,17 @@ fn test_get_account() -> Result<(), Box<dyn std::error::Error>> {
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
   let account = client.get_account()?;
 
   assert_eq!(
     Account {
-      id: AccountId(1),
+      id: AccountId::Num(1),
       name: "demo".to_string(),
       title: "Demo GmbH".to_string(),
       currency: "EUR".to_string(),
       created_at: Utc.ymd(2013, 10, 12).and_hms(13, 39, 51),
-      updated_at: Utc.ymd(2015, 5, 2).and_hms(12, 21, 09),
     },
     account
   );
@@ -76,13 +75,13 @@ fn test_get_myself() -> Result<(), Box<dyn std::error::Error>> {
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
   let user = client.get_myself()?;
 
   assert_eq!(
     User {
-      id: UserId(3456),
+      id: UserId::Num(3456),
       name: "August Ausgedacht".to_string(),
       email: "august.ausgedacht@demo.de".to_string(),
       note: "".to_string(),
@@ -90,7 +89,6 @@ fn test_get_myself() -> Result<(), Box<dyn std::error::Error>> {
       role: "admin".to_string(),
       language: "de".to_string(),
       created_at: Utc.ymd(2013, 6, 23).and_hms(21, 0, 58),
-      updated_at: Utc.ymd(2015, 7, 24).and_hms(23, 26, 35),
     },
     user
   );
@@ -132,20 +130,18 @@ fn test_get_customers() -> Result<(), Box<dyn std::error::Error>> {
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
   let customers = client.get_customers()?;
 
   assert_eq!(customers.len(), 1);
   assert_eq!(
     Customer {
-      id: CustomerId(83241),
+      id: CustomerId::Num(83241),
       name: "Acme Inc.".to_string(),
       note: "".to_string(),
       archived: false,
-      hourly_rate: None,
       created_at: Utc.ymd(2015, 10, 15).and_hms(12, 33, 19),
-      updated_at: Utc.ymd(2015, 10, 15).and_hms(12, 29, 03)
     },
     customers[0]
   );
@@ -191,24 +187,20 @@ fn test_get_projects() -> Result<(), Box<dyn std::error::Error>> {
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
   let projects = client.get_projects()?;
 
   assert_eq!(projects.len(), 1);
   assert_eq!(
     Project {
-      id: ProjectId(643),
+      id: ProjectId::Num(643),
       name: "Open-Source".to_string(),
       note: "valvat, memento et all.".to_string(),
-      customer_id: CustomerId(291),
+      customer_id: CustomerId::Num(291),
       customer_name: "Yolk".to_string(),
-      budget: 0,
-      budget_type: "minutes".to_string(),
-      hourly_rate: Some(6000),
       archived: false,
       created_at: Utc.ymd(2011, 08, 17).and_hms(10, 06, 57),
-      updated_at: Utc.ymd(2015, 02, 19).and_hms(09, 53, 10),
     },
     projects[0]
   );
@@ -240,21 +232,19 @@ fn test_get_services() -> Result<(), Box<dyn std::error::Error>> {
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
-  let services = client.get_services()?;
+  let services = client.get_services(&ProjectId::Num(0))?;
 
   assert_eq!(services.len(), 1);
   assert_eq!(
     Service {
-      id: ServiceId(38672),
+      id: ServiceId::Num(38672),
       name: "Website Konzeption".to_string(),
       note: "".to_string(),
       archived: false,
       billable: true,
-      hourly_rate: Some(3300),
       created_at: Utc.ymd(2009, 12, 13).and_hms(11, 12, 00),
-      updated_at: Utc.ymd(2015, 12, 13).and_hms(06, 20, 04)
     },
     services[0]
   );
@@ -287,23 +277,21 @@ fn test_query_entries() -> Result<(), Box<dyn std::error::Error>> {
     }
   });
   let expected = TimeEntry {
-    id: TimeEntryId(36159117),
+    id: TimeEntryId::Num(36159117),
     minutes: Minutes(15),
     date_at: NaiveDate::from_ymd(2015, 10, 16),
     note: "Feedback einarbeiten".to_string(),
     locked: false,
     billable: true,
-    hourly_rate: 0,
-    user_id: UserId(211),
+    user_id: UserId::Num(211),
     user_name: "Fridolin Frei".to_string(),
-    customer_id: CustomerId(3213),
+    customer_id: CustomerId::Num(3213),
     customer_name: "König".to_string(),
-    service_id: ServiceId(12984),
+    service_id: ServiceId::Num(12984),
     service_name: "Entwurf".to_string(),
-    project_id: ProjectId(88309),
+    project_id: ProjectId::Num(88309),
     project_name: "API v2".to_string(),
     created_at: Utc.ymd(2015, 10, 16).and_hms(10, 19, 00),
-    updated_at: Utc.ymd(2015, 10, 16).and_hms(10, 39, 00),
   };
 
   let pact = PactBuilder::new(CONSUMER, PROVIDER)
@@ -317,29 +305,17 @@ fn test_query_entries() -> Result<(), Box<dyn std::error::Error>> {
         .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
       i.response.ok().json_utf8().json_body(json!([time_entry_json]));
     })
-    .interaction("get time entry by id", |i| {
-      i.given("User with API token");
-      i.request
-        .get()
-        .path("/time_entries/36159117.json")
-        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
-      i.response.ok().json_utf8().json_body(time_entry_json);
-    })
     .build();
 
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
   let entries = client.get_time_entries(DateSpan::Day(Day::Date(NaiveDate::from_ymd(2015, 10, 16))))?;
 
   assert_eq!(entries.len(), 1);
   assert_eq!(expected, entries[0]);
-
-  let entry = client.get_time_entry(TimeEntryId(36159117))?;
-
-  assert_eq!(expected, entry);
 
   Ok(())
 }
@@ -390,29 +366,33 @@ fn test_create_entry() -> Result<(), Box<dyn std::error::Error>> {
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
-  let entry = client.create_time_entry(Day::Date(NaiveDate::from_ymd(2015, 9, 15)), ProjectId(3456), ServiceId(243), Minutes(185), None)?;
+  let entry = client.create_time_entry(
+    Day::Date(NaiveDate::from_ymd(2015, 9, 15)),
+    &ProjectId::Num(3456),
+    &ServiceId::Num(243),
+    Minutes(185),
+    None,
+  )?;
 
   assert_eq!(
     TimeEntry {
-      id: TimeEntryId(52324),
+      id: TimeEntryId::Num(52324),
       minutes: Minutes(185),
       date_at: NaiveDate::from_ymd(2015, 9, 12),
       note: "".to_string(),
       locked: false,
       billable: true,
-      hourly_rate: 0,
-      user_id: UserId(211),
+      user_id: UserId::Num(211),
       user_name: "Fridolin Frei".to_string(),
-      customer_id: CustomerId(3213),
+      customer_id: CustomerId::Num(3213),
       customer_name: "König".to_string(),
-      service_id: ServiceId(243),
+      service_id: ServiceId::Num(243),
       service_name: "Dokumentation".to_string(),
-      project_id: ProjectId(3456),
+      project_id: ProjectId::Num(3456),
       project_name: "Some project".to_string(),
       created_at: Utc.ymd(2015, 9, 13).and_hms(16, 54, 45),
-      updated_at: Utc.ymd(2015, 9, 13).and_hms(16, 54, 45),
     },
     entry
   );
@@ -436,9 +416,9 @@ fn test_delete_entry() -> Result<(), Box<dyn std::error::Error>> {
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
-  client.delete_time_entry(TimeEntryId(52324))?;
+  client.delete_time_entry(&TimeEntryId::Num(52324))?;
 
   Ok(())
 }
@@ -465,15 +445,55 @@ fn test_update_entry() -> Result<(), Box<dyn std::error::Error>> {
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
-  client.update_time_entry(TimeEntryId(52324), Minutes(120), None)?;
+  client.update_time_entry(&TimeEntryId::Num(52324), Minutes(120), None)?;
 
   Ok(())
 }
 
 #[test]
 fn test_get_tracker() -> Result<(), Box<dyn std::error::Error>> {
+  let time_entry_json = json!({
+    "time_entry": {
+       "id": 36159117,
+       "minutes": 15,
+       "date_at": "2015-10-16",
+       "note": "Feedback einarbeiten",
+       "billable": true,
+       "locked": false,
+       "revenue": null,
+       "hourly_rate": 0,
+       "user_id": 211,
+       "user_name": "Fridolin Frei",
+       "project_id": 88309,
+       "project_name": "API v2",
+       "customer_id": 3213,
+       "customer_name": "König",
+       "service_id": 12984,
+       "service_name": "Entwurf",
+       "created_at": "2015-10-16T12:19:00+02:00",
+       "updated_at": "2015-10-16T12:39:00+02:00"
+    }
+  });
+  let expected = TimeEntry {
+    id: TimeEntryId::Num(36159117),
+    minutes: Minutes(15),
+    date_at: NaiveDate::from_ymd(2015, 10, 16),
+    note: "Feedback einarbeiten".to_string(),
+    locked: false,
+    billable: true,
+    user_id: UserId::Num(211),
+    user_name: "Fridolin Frei".to_string(),
+    customer_id: CustomerId::Num(3213),
+    customer_name: "König".to_string(),
+    service_id: ServiceId::Num(12984),
+    service_name: "Entwurf".to_string(),
+    project_id: ProjectId::Num(88309),
+    project_name: "API v2".to_string(),
+    created_at: Utc.ymd(2015, 10, 16).and_hms(10, 19, 00),
+  };
+
   let pact = PactBuilder::new(CONSUMER, PROVIDER)
     .interaction("get tracker", |i| {
       i.given("User with API token");
@@ -488,22 +508,27 @@ fn test_get_tracker() -> Result<(), Box<dyn std::error::Error>> {
         }
       }));
     })
+    .interaction("get tracker time entry by id 1", |i| {
+      i.given("User with API token");
+      i.request
+        .get()
+        .path("/time_entries/36135321.json")
+        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.ok().json_utf8().json_body(time_entry_json);
+    })
     .build();
 
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
   let tracker = client.get_tracker()?;
 
   assert_eq!(
     Tracker {
-      tracking_time_entry: Some(TrackingTimeEntry {
-        id: TimeEntryId(36135321),
-        minutes: Minutes(247),
-        since: Some(Utc.ymd(2015, 10, 15).and_hms(15, 05, 04))
-      }),
+      since: Some(Utc.ymd(2015, 10, 15).and_hms(15, 05, 04)),
+      tracking_time_entry: Some(expected),
       stopped_time_entry: None,
     },
     tracker
@@ -514,6 +539,46 @@ fn test_get_tracker() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_create_tracker() -> Result<(), Box<dyn std::error::Error>> {
+  let time_entry_json = json!({
+    "time_entry": {
+       "id": 36159117,
+       "minutes": 15,
+       "date_at": "2015-10-16",
+       "note": "Feedback einarbeiten",
+       "billable": true,
+       "locked": false,
+       "revenue": null,
+       "hourly_rate": 0,
+       "user_id": 211,
+       "user_name": "Fridolin Frei",
+       "project_id": 88309,
+       "project_name": "API v2",
+       "customer_id": 3213,
+       "customer_name": "König",
+       "service_id": 12984,
+       "service_name": "Entwurf",
+       "created_at": "2015-10-16T12:19:00+02:00",
+       "updated_at": "2015-10-16T12:39:00+02:00"
+    }
+  });
+  let expected = TimeEntry {
+    id: TimeEntryId::Num(36159117),
+    minutes: Minutes(15),
+    date_at: NaiveDate::from_ymd(2015, 10, 16),
+    note: "Feedback einarbeiten".to_string(),
+    locked: false,
+    billable: true,
+    user_id: UserId::Num(211),
+    user_name: "Fridolin Frei".to_string(),
+    customer_id: CustomerId::Num(3213),
+    customer_name: "König".to_string(),
+    service_id: ServiceId::Num(12984),
+    service_name: "Entwurf".to_string(),
+    project_id: ProjectId::Num(88309),
+    project_name: "API v2".to_string(),
+    created_at: Utc.ymd(2015, 10, 16).and_hms(10, 19, 00),
+  };
+
   let pact = PactBuilder::new(CONSUMER, PROVIDER)
     .interaction("create tracker", |i| {
       i.given("User with API token");
@@ -535,27 +600,36 @@ fn test_create_tracker() -> Result<(), Box<dyn std::error::Error>> {
         }
       }));
     })
+    .interaction("get tracker time entry by id 2a", |i| {
+      i.given("User with API token");
+      i.request
+        .get()
+        .path("/time_entries/36135322.json")
+        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.ok().json_utf8().json_body(time_entry_json.clone());
+    })
+    .interaction("get tracker time entry by id 2b", |i| {
+      i.given("User with API token");
+      i.request
+        .get()
+        .path("/time_entries/36134329.json")
+        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.ok().json_utf8().json_body(time_entry_json);
+    })
     .build();
 
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
-  let tracker = client.create_tracker(TimeEntryId(36135322))?;
+  let tracker = client.create_tracker(&TimeEntryId::Num(36135322))?;
 
   assert_eq!(
     Tracker {
-      tracking_time_entry: Some(TrackingTimeEntry {
-        id: TimeEntryId(36135322),
-        minutes: Minutes(0),
-        since: Some(Utc.ymd(2015, 10, 15).and_hms(15, 33, 52)),
-      }),
-      stopped_time_entry: Some(TrackingTimeEntry {
-        id: TimeEntryId(36134329),
-        minutes: Minutes(46),
-        since: None,
-      }),
+      since: Some(Utc.ymd(2015, 10, 15).and_hms(15, 33, 52)),
+      tracking_time_entry: Some(expected.clone()),
+      stopped_time_entry: Some(expected),
     },
     tracker
   );
@@ -565,6 +639,46 @@ fn test_create_tracker() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn test_delete_tracker() -> Result<(), Box<dyn std::error::Error>> {
+  let time_entry_json = json!({
+    "time_entry": {
+       "id": 36159117,
+       "minutes": 15,
+       "date_at": "2015-10-16",
+       "note": "Feedback einarbeiten",
+       "billable": true,
+       "locked": false,
+       "revenue": null,
+       "hourly_rate": 0,
+       "user_id": 211,
+       "user_name": "Fridolin Frei",
+       "project_id": 88309,
+       "project_name": "API v2",
+       "customer_id": 3213,
+       "customer_name": "König",
+       "service_id": 12984,
+       "service_name": "Entwurf",
+       "created_at": "2015-10-16T12:19:00+02:00",
+       "updated_at": "2015-10-16T12:39:00+02:00"
+    }
+  });
+  let expected = TimeEntry {
+    id: TimeEntryId::Num(36159117),
+    minutes: Minutes(15),
+    date_at: NaiveDate::from_ymd(2015, 10, 16),
+    note: "Feedback einarbeiten".to_string(),
+    locked: false,
+    billable: true,
+    user_id: UserId::Num(211),
+    user_name: "Fridolin Frei".to_string(),
+    customer_id: CustomerId::Num(3213),
+    customer_name: "König".to_string(),
+    service_id: ServiceId::Num(12984),
+    service_name: "Entwurf".to_string(),
+    project_id: ProjectId::Num(88309),
+    project_name: "API v2".to_string(),
+    created_at: Utc.ymd(2015, 10, 16).and_hms(10, 19, 00),
+  };
+
   let pact = PactBuilder::new(CONSUMER, PROVIDER)
     .interaction("delete tracker", |i| {
       i.given("User with API token");
@@ -581,23 +695,28 @@ fn test_delete_tracker() -> Result<(), Box<dyn std::error::Error>> {
         }
       }));
     })
+    .interaction("get tracker time entry by id 3", |i| {
+      i.given("User with API token");
+      i.request
+        .get()
+        .path("/time_entries/36135322.json")
+        .header("X-MiteApiKey", term!("[0-9a-f]+", "12345678"));
+      i.response.ok().json_utf8().json_body(time_entry_json);
+    })
     .build();
 
   let server = pact.start_mock_server();
   let mut url = server.url().clone();
   url.set_username("12345678").unwrap();
-  let client = StdClient::new_form_url(url);
+  let client = MiteClient::new_form_url(url);
 
-  let tracker = client.delete_tracker(TimeEntryId(36135322))?;
+  let tracker = client.delete_tracker(&TimeEntryId::Num(36135322))?;
 
   assert_eq!(
     Tracker {
+      since: None,
       tracking_time_entry: None,
-      stopped_time_entry: Some(TrackingTimeEntry {
-        id: TimeEntryId(36135322),
-        minutes: Minutes(4),
-        since: None,
-      }),
+      stopped_time_entry: Some(expected),
     },
     tracker
   );

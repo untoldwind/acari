@@ -44,7 +44,9 @@ fn print_json(projects: Vec<Project>) -> Result<(), AcariError> {
 fn print_flat(projects: Vec<(&str, Vec<&Project>)>) {
   for (customer_name, group) in projects {
     for project in group {
-      println!("{}/{}", customer_name, project.name);
+      if !project.archived {
+        println!("{}/{}", customer_name, project.name);
+      }
     }
   }
 }
