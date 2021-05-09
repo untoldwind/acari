@@ -185,7 +185,7 @@ pub struct EverhourCreateTimeRecord {
   #[serde(with = "minutes_in_seconds")]
   pub time: Minutes,
   pub user: UserId,
-  pub comment: Option<String>,
+  pub comment: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]

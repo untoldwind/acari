@@ -169,7 +169,7 @@ impl Client for EverhourClient {
         date: day.as_date(),
         user: user.id.clone(),
         time: minutes,
-        comment: note,
+        comment: note.unwrap_or_default(),
       },
     )?;
 
@@ -181,16 +181,27 @@ impl Client for EverhourClient {
   fn update_time_entry(&self, entry_id: &TimeEntryId, minutes: Minutes, note: Option<String>) -> Result<(), AcariError> {
     let (user_id, service_id, date) = parse_time_entry_id(entry_id)?;
 
-    let _: EverhourTimeEntry = self.request_with_body(
-      Method::POST,
-      &format!("/tasks/{}/time", service_id.path_encoded()),
-      EverhourCreateTimeRecord {
-        date,
-        user: user_id,
-        time: minutes,
-        comment: note,
-      },
-    )?;
+    if minutes.0 == 0 {
+      let _: EverhourTimeEntry = self.request_with_body(
+        Method::DELETE,
+        &format!("/tasks/{}/time", service_id.path_encoded()),
+        json!({
+          "date": date,
+          "user": user_id,
+        }),
+      )?;
+    } else {
+      let _: EverhourTimeEntry = self.request_with_body(
+        Method::PUT,
+        &format!("/tasks/{}/time", service_id.path_encoded()),
+        EverhourCreateTimeRecord {
+          date,
+          user: user_id,
+          time: minutes,
+          comment: note.unwrap_or_default(),
+        },
+      )?;
+    }
 
     Ok(())
   }
