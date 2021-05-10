@@ -202,8 +202,8 @@ pub struct EverhourTimer {
   pub status: String,
   pub task: Option<EverhourTask>,
   pub user: Option<EverhourUserSimple>,
-  #[serde(with = "minutes_in_seconds", default)]
-  pub duration: Minutes,
+  pub duration: Option<u32>,
+  pub today: Option<u32>,
   #[serde(with = "date_format", default = "default_started_at")]
   pub started_at: DateTime<Utc>,
   pub comment: Option<String>,

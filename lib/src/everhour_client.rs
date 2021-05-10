@@ -74,10 +74,11 @@ impl EverhourClient {
           Some(project_id) => Some(self.request::<EverhourProject>(Method::GET, &format!("/projects/{}", project_id.path_encoded()))?),
           None => None,
         };
+        let minutes = Minutes((timer.duration.unwrap_or_default() + timer.today.unwrap_or_default()) / 60);
         Ok(Some(TimeEntry {
           id: build_time_entry_id(&user.id, &task.id, &timer.started_at.naive_utc().date()),
           date_at: timer.started_at.naive_utc().date(),
-          minutes: timer.duration,
+          minutes,
           customer_id: maybe_project.as_ref().map(|p| p.workspace_id.clone()).unwrap_or_default(),
           customer_name: maybe_project.as_ref().map(|p| p.workspace_name.clone()).unwrap_or_default(),
           project_id: maybe_project.as_ref().map(|p| p.id.clone()).unwrap_or_default(),
