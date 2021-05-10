@@ -35,7 +35,7 @@ complete -f -c acari -n "__fish_use_subcommand" -a tracking -d "show current tim
 complete -f -c acari -n "__fish_seen_subcommand_from add"
 complete -f -c acari -n "__fish_seen_subcommand_from add; and __fish_is_arg_n 2" -a "(acari (__profile_arg) -oflat customers)" 
 complete -f -c acari -n "__fish_seen_subcommand_from add; and __fish_is_arg_n 3" -a "(acari (__profile_arg) -oflat projects (__fish_arg_n 2))" 
-complete -f -c acari -n "__fish_seen_subcommand_from add; and __fish_is_arg_n 4" -a "(acari (__profile_arg) -oflat services)" 
+complete -f -c acari -n "__fish_seen_subcommand_from add; and __fish_is_arg_n 4" -a "(acari (__profile_arg) -oflat services (__fish_arg_n 2) (__fish_arg_n 3))" 
 
 # check
 complete -f -c acari -n "__fish_seen_subcommand_from check"
@@ -56,18 +56,20 @@ complete -f -c acari -n "__fish_seen_subcommand_from projects; and __fish_is_arg
 
 # services
 complete -f -c acari -n "__fish_seen_subcommand_from services"
+complete -f -c acari -n "__fish_seen_subcommand_from services; and __fish_is_arg_n 2" -a "(acari (__profile_arg) -oflat customers)" 
+complete -f -c acari -n "__fish_seen_subcommand_from services; and __fish_is_arg_n 3" -a "(acari (__profile_arg) -oflat projects (__fish_arg_n 2))" 
 
 # set
 complete -f -c acari -n "__fish_seen_subcommand_from set"
 complete -f -c acari -n "__fish_seen_subcommand_from set; and __fish_is_arg_n 2" -a "(acari (__profile_arg) -oflat customers)" 
 complete -f -c acari -n "__fish_seen_subcommand_from set; and __fish_is_arg_n 3" -a "(acari (__profile_arg) -oflat projects (__fish_arg_n 2))" 
-complete -f -c acari -n "__fish_seen_subcommand_from set; and __fish_is_arg_n 4" -a "(acari (__profile_arg) -oflat services)" 
+complete -f -c acari -n "__fish_seen_subcommand_from set; and __fish_is_arg_n 4" -a "(acari (__profile_arg) -oflat services (__fish_arg_n 2) (__fish_arg_n 3))" 
 
 # start
 complete -f -c acari -n "__fish_seen_subcommand_from start"
 complete -f -c acari -n "__fish_seen_subcommand_from start; and __fish_is_arg_n 2" -a "(acari (__profile_arg) -oflat customers)" 
 complete -f -c acari -n "__fish_seen_subcommand_from start; and __fish_is_arg_n 3" -a "(acari (__profile_arg) -oflat projects (__fish_arg_n 2))" 
-complete -f -c acari -n "__fish_seen_subcommand_from start; and __fish_is_arg_n 4" -a "(acari (__profile_arg) -oflat services)" 
+complete -f -c acari -n "__fish_seen_subcommand_from start; and __fish_is_arg_n 4" -a "(acari (__profile_arg) -oflat services (__fish_arg_n 2) (__fish_arg_n 3))" 
 
 # stop
 complete -f -c acari -n "__fish_seen_subcommand_from stop"

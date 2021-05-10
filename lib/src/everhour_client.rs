@@ -163,7 +163,7 @@ impl Client for EverhourClient {
       .collect();
 
     let entry: EverhourTimeEntry = self.request_with_body(
-      Method::POST,
+      Method::PUT,
       &format!("/tasks/{}/time", service_id.path_encoded()),
       EverhourCreateTimeRecord {
         date: day.as_date(),
