@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 [[package]]
 name = "acari-cli"
-version = "0.1.11"
+version = "0.1.12"
 dependencies = [
  "acari-lib",
  "chrono",
@@ -19,7 +19,7 @@ dependencies = [
 
 [[package]]
 name = "acari-lib"
-version = "0.1.11"
+version = "0.1.12"
 dependencies = [
  "chrono",
  "dirs 2.0.2",
