@@ -1,8 +1,8 @@
-use crate::error::AcariError;
 use crate::mite_model::{date_span_query_param, MiteEntity, MiteTracker};
 use crate::model::{Account, Customer, Minutes, Project, ProjectId, Service, ServiceId, TimeEntry, TimeEntryId, Tracker, User};
 use crate::query::{DateSpan, Day};
 use crate::Client;
+use crate::{error::AcariError, requester::ResponseHandler};
 use serde::de::DeserializeOwned;
 use serde::ser::Serialize;
 use serde_json::json;
@@ -65,6 +65,35 @@ impl MiteClient {
     Self::handle_empty_response(response)
   }
 
+  fn get_time_entry(&self, entry_id: &TimeEntryId) -> Result<TimeEntry, AcariError> {
+    match self.request(Method::GET, &format!("/time_entries/{}.json", entry_id))? {
+      MiteEntity::TimeEntry(time_entry) => Ok(time_entry.into()),
+      response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
+    }
+  }
+
+  fn convert_tracker(&self, tracker: MiteTracker) -> Result<Tracker, AcariError> {
+    let tracking_time_entry = tracker
+      .tracking_time_entry
+      .as_ref()
+      .map(|e| {
+        self.get_time_entry(&e.id).map(|mut entry| {
+          entry.minutes = e.minutes;
+          entry
+        })
+      })
+      .transpose()?;
+    let stopped_time_entry = tracker.stopped_time_entry.as_ref().map(|e| self.get_time_entry(&e.id)).transpose()?;
+
+    Ok(Tracker {
+      since: tracker.tracking_time_entry.and_then(|e| e.since),
+      tracking_time_entry,
+      stopped_time_entry,
+    })
+  }
+}
+
+impl ResponseHandler for MiteClient {
   fn handle_empty_response(response: blocking::Response) -> Result<(), AcariError> {
     match response.status() {
       StatusCode::OK | StatusCode::CREATED => Ok(()),
@@ -83,27 +112,6 @@ impl MiteClient {
         _ => Err(AcariError::Mite(status.as_u16(), status.to_string())),
       },
     }
-  }
-
-  fn get_time_entry(&self, entry_id: &TimeEntryId) -> Result<TimeEntry, AcariError> {
-    match self.request(Method::GET, &format!("/time_entries/{}.json", entry_id))? {
-      MiteEntity::TimeEntry(time_entry) => Ok(time_entry.into()),
-      response => Err(AcariError::Mite(400, format!("Unexpected response: {:?}", response))),
-    }
-  }
-
-  fn convert_tracker(&self, tracker: MiteTracker) -> Result<Tracker, AcariError> {
-    let tracking_time_entry = tracker.tracking_time_entry.as_ref().map(|e| self.get_time_entry(&e.id).map(|mut entry| {
-      entry.minutes = e.minutes;
-      entry
-    })).transpose()?;
-    let stopped_time_entry = tracker.stopped_time_entry.as_ref().map(|e| self.get_time_entry(&e.id)).transpose()?;
-
-    Ok(Tracker {
-      since: tracker.tracking_time_entry.and_then(|e| e.since),
-      tracking_time_entry,
-      stopped_time_entry,
-    })
   }
 }
 

@@ -6,6 +6,7 @@ mod mite_client;
 mod mite_model;
 mod model;
 mod query;
+mod requester;
 
 pub use cached_client::{clear_cache, CachedClient};
 pub use error::AcariError;

@@ -1,11 +1,14 @@
-use crate::everhour_model::{
-  build_time_entry_id, date_span_query_param, parse_time_entry_id, EverhourCreateTimeRecord, EverhourError, EverhourTask, EverhourTimeEntry, EverhourTimer,
-  EverhourUser,
-};
 use crate::model::{Account, Customer, CustomerId, Minutes, Project, ProjectId, Service, ServiceId, TimeEntry, TimeEntryId, Tracker, User};
 use crate::query::{DateSpan, Day};
 use crate::Client;
 use crate::{error::AcariError, everhour_model::EverhourProject};
+use crate::{
+  everhour_model::{
+    build_time_entry_id, date_span_query_param, parse_time_entry_id, EverhourCreateTimeRecord, EverhourError, EverhourTask, EverhourTimeEntry, EverhourTimer,
+    EverhourUser,
+  },
+  requester::ResponseHandler,
+};
 use chrono::Utc;
 use reqwest::{blocking, header, Method, StatusCode};
 use serde::de::DeserializeOwned;
@@ -57,16 +60,6 @@ impl EverhourClient {
     Self::handle_response(response)
   }
 
-  fn handle_response<T: DeserializeOwned>(response: blocking::Response) -> Result<T, AcariError> {
-    match response.status() {
-      StatusCode::OK | StatusCode::CREATED => Ok(response.json()?),
-      status => match response.json::<EverhourError>() {
-        Ok(err) => Err(AcariError::Mite(err.code, err.message)),
-        _ => Err(AcariError::Mite(status.as_u16(), status.to_string())),
-      },
-    }
-  }
-
   fn entry_from_timer(&self, timer: EverhourTimer) -> Result<Option<TimeEntry>, AcariError> {
     match (timer.status.as_str(), timer.task, timer.user) {
       ("active", Some(task), Some(user)) => {
@@ -94,6 +87,28 @@ impl EverhourClient {
         }))
       }
       _ => Ok(None),
+    }
+  }
+}
+
+impl ResponseHandler for EverhourClient {
+  fn handle_response<T: DeserializeOwned>(response: blocking::Response) -> Result<T, AcariError> {
+    match response.status() {
+      StatusCode::OK | StatusCode::CREATED => Ok(response.json()?),
+      status => match response.json::<EverhourError>() {
+        Ok(err) => Err(AcariError::Mite(err.code, err.message)),
+        _ => Err(AcariError::Mite(status.as_u16(), status.to_string())),
+      },
+    }
+  }
+
+  fn handle_empty_response(response: blocking::Response) -> Result<(), AcariError> {
+    match response.status() {
+      StatusCode::OK | StatusCode::CREATED => Ok(()),
+      status => match response.json::<EverhourError>() {
+        Ok(err) => Err(AcariError::Mite(err.code, err.message)),
+        _ => Err(AcariError::Mite(status.as_u16(), status.to_string())),
+      },
     }
   }
 }
