@@ -93,7 +93,10 @@ impl MiteClient {
   }
 
   fn convert_tracker(&self, tracker: MiteTracker) -> Result<Tracker, AcariError> {
-    let tracking_time_entry = tracker.tracking_time_entry.as_ref().map(|e| self.get_time_entry(&e.id)).transpose()?;
+    let tracking_time_entry = tracker.tracking_time_entry.as_ref().map(|e| self.get_time_entry(&e.id).map(|mut entry| {
+      entry.minutes = e.minutes;
+      entry
+    })).transpose()?;
     let stopped_time_entry = tracker.stopped_time_entry.as_ref().map(|e| self.get_time_entry(&e.id)).transpose()?;
 
     Ok(Tracker {
