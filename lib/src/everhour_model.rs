@@ -258,14 +258,7 @@ pub fn date_span_query_param(span: &DateSpan) -> String {
     DateSpan::LastMonth => {
       let now = Local::now().naive_local().date();
       let end = NaiveDate::from_ymd(now.year(), now.month(), 1).pred();
-      let year = end.year();
-      let month = end.month();
-
-      let start = if month == 1 {
-        NaiveDate::from_ymd(year - 1, 12, 1)
-      } else {
-        NaiveDate::from_ymd(year, month - 1, 1)
-      };
+      let start = NaiveDate::from_ymd(end.year(), end.month(), 1);
 
       format!("from={}&to={}", start, end)
     }
