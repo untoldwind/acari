@@ -1,14 +1,14 @@
 use super::OutputFormat;
 use acari_lib::{AcariError, Client, DateSpan, Minutes, TimeEntry};
 use chrono::NaiveDate;
-use clap::Clap;
+use clap::Args;
 use itertools::Itertools;
-use prettytable::{cell, format, row, Table};
+use prettytable::{format, row, Table};
 use serde_json::{json, Value};
 
-#[derive(Clap, PartialEq, Eq)]
+#[derive(Debug, Args, PartialEq, Eq)]
 pub struct EntriesCmd {
-  #[clap(about = "Date span to query\n(today, yesterday, this-week, last-week,\n this-month, last-month, yyyy-mm-dd, yyyy-mm-dd/yyyy-mm-dd)")]
+  #[clap(help = "Date span to query\n(today, yesterday, this-week, last-week,\n this-month, last-month, yyyy-mm-dd, yyyy-mm-dd/yyyy-mm-dd)")]
   span: DateSpan,
 }
 

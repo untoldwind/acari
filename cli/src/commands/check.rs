@@ -1,6 +1,6 @@
 use super::OutputFormat;
 use acari_lib::{AcariError, Account, Client, User};
-use prettytable::{cell, format, row, table};
+use prettytable::{format, table};
 use serde_json::json;
 
 pub fn check(client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {

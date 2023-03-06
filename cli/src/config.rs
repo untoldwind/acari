@@ -44,9 +44,9 @@ impl Config {
     let config_file = config_file();
     match File::open(&config_file) {
       Ok(mut file) => {
-        let mut content = vec![];
-        file.read_to_end(&mut content)?;
-        Ok(Some(toml::from_slice::<Config>(&content)?))
+        let mut content = String::new();
+        file.read_to_string(&mut content)?;
+        Ok(Some(toml::from_str::<Config>(&content)?))
       }
       Err(ref err) if err.kind() == io::ErrorKind::NotFound => Ok(None),
       Err(err) => Err(err.into()),

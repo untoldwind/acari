@@ -1,4 +1,4 @@
-use clap::Clap;
+use clap::ValueEnum;
 
 mod add;
 mod all_projects;
@@ -28,7 +28,7 @@ pub use tracker::*;
 
 use acari_lib::{user_error, AcariError, Client, Customer, CustomerId, Project, ProjectId, Service};
 
-#[derive(Clap, Debug, PartialEq)]
+#[derive(ValueEnum, Debug, PartialEq, Clone, Copy)]
 pub enum OutputFormat {
   Pretty,
   Json,

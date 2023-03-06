@@ -1,21 +1,21 @@
 use super::OutputFormat;
 use super::{entries, find_customer, find_project, find_service};
 use acari_lib::{AcariError, Client, Day, Minutes};
-use clap::Clap;
+use clap::Args;
 
-#[derive(Clap, PartialEq, Eq)]
+#[derive(Debug, Args, PartialEq, Eq)]
 pub struct AddCmd {
-  #[clap(about = "Customer name")]
+  #[clap(help = "Customer name")]
   customer: String,
-  #[clap(about = "Project name")]
+  #[clap(help = "Project name")]
   project: String,
-  #[clap(about = "Service name")]
+  #[clap(help = "Service name")]
   service: String,
-  #[clap(about = "Time (minutes or hh:mm)")]
+  #[clap(help = "Time (minutes or hh:mm)")]
   time: Minutes,
-  #[clap(about = "Date", default_value = "today")]
+  #[clap(help = "Date", default_value = "today")]
   day: Day,
-  #[clap(short, long, about = "Optional note")]
+  #[clap(short, long, help = "Optional note")]
   note: Option<String>,
 }
 

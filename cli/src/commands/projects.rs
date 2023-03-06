@@ -1,11 +1,11 @@
 use acari_lib::{AcariError, Client};
-use clap::Clap;
+use clap::Args;
 
 use super::{all_projects, projects_of_customer, OutputFormat};
 
-#[derive(Clap, PartialEq, Eq)]
+#[derive(Debug, Args, PartialEq, Eq)]
 pub struct ProjectsCmd {
-  #[clap(about = "Optional: List only projects of a specific customer")]
+  #[clap(help = "Optional: List only projects of a specific customer")]
   customer: Option<String>,
 }
 

@@ -1,6 +1,6 @@
 use super::OutputFormat;
 use acari_lib::{AcariError, Client, Project};
-use prettytable::{cell, format, row, Table};
+use prettytable::{format, row, Table};
 
 pub fn projects_of_customer(client: &dyn Client, output_format: OutputFormat, customer_name: &str) -> Result<(), AcariError> {
   let mut projects = client.get_projects()?;

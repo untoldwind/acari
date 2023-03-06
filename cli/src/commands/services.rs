@@ -1,15 +1,15 @@
 use super::OutputFormat;
 use super::{find_customer, find_project};
 use acari_lib::{AcariError, Client, Service};
-use clap::Clap;
+use clap::Args;
 use itertools::Itertools;
-use prettytable::{cell, row, table};
+use prettytable::table;
 
-#[derive(Clap, PartialEq, Eq)]
+#[derive(Debug, Args, PartialEq, Eq)]
 pub struct ServicesCommand {
-  #[clap(about = "Customer name")]
+  #[clap(help = "Customer name")]
   customer: String,
-  #[clap(about = "Project name")]
+  #[clap(help = "Project name")]
   project: String,
 }
 

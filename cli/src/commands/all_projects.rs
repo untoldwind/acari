@@ -1,7 +1,7 @@
 use super::OutputFormat;
 use acari_lib::{AcariError, Client, Project};
 use itertools::Itertools;
-use prettytable::{cell, format, row, Table};
+use prettytable::{format, row, Table};
 
 pub fn all_projects(client: &dyn Client, output_format: OutputFormat) -> Result<(), AcariError> {
   let mut projects = client.get_projects()?;

@@ -1,21 +1,21 @@
 use super::OutputFormat;
 use super::{find_customer, find_project, find_service};
 use acari_lib::{AcariError, Client, Day, Minutes, TimeEntry, Tracker};
-use clap::Clap;
-use prettytable::{cell, format, row, table};
+use clap::Args;
+use prettytable::{format, row, table};
 use serde_json::json;
 
-#[derive(Clap, PartialEq, Eq)]
+#[derive(Debug, Args, PartialEq, Eq)]
 pub struct StartCmd {
-  #[clap(about = "Customer name")]
+  #[clap(help = "Customer name")]
   customer: String,
-  #[clap(about = "Project name")]
+  #[clap(help = "Project name")]
   project: String,
-  #[clap(about = "Service name")]
+  #[clap(help = "Service name")]
   service: String,
-  #[clap(about = "Optional: Starting offset (minutes or hh:mm)")]
+  #[clap(help = "Optional: Starting offset (minutes or hh:mm)")]
   offset: Option<Minutes>,
-  #[clap(short, long, about = "Optional note")]
+  #[clap(short, long, help = "Optional note")]
   note: Option<String>,
 }
 
