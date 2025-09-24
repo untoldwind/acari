@@ -55,7 +55,9 @@ enum AcariSubCommand {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-  openssl_probe::init_ssl_cert_env_vars();
+  unsafe {
+    openssl_probe::init_openssl_env_vars();
+  }
 
   let opts: Opts = Opts::parse();
 

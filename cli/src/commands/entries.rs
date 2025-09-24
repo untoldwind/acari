@@ -26,7 +26,7 @@ pub fn entries(client: &dyn Client, output_format: OutputFormat, date_span: Date
 
   let grouped: Vec<(&NaiveDate, Vec<&TimeEntry>)> = time_entries
     .iter()
-    .group_by(|e| &e.date_at)
+    .chunk_by(|e| &e.date_at)
     .into_iter()
     .map(|(customer_name, group)| (customer_name, group.collect()))
     .collect();

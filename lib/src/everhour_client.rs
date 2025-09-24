@@ -69,22 +69,26 @@ impl EverhourClient {
 
   fn entry_from_timer(&self, timer: EverhourTimer) -> Result<Option<TimeEntry>, AcariError> {
     match (timer.status.as_str(), timer.task, timer.user) {
-      ("active", Some(task), Some(user)) => {
-        let maybe_project = match task.projects.get(0) {
+      ("active", maybe_task, Some(user)) => {
+        let maybe_project = match maybe_task.as_ref().and_then(|task| task.projects.get(0)) {
           Some(project_id) => Some(self.request::<EverhourProject>(Method::GET, &format!("/projects/{}", project_id.path_encoded()))?),
           None => None,
         };
         let minutes = Minutes((timer.duration.unwrap_or_default() + timer.today.unwrap_or_default()) / 60);
         Ok(Some(TimeEntry {
-          id: build_time_entry_id(&user.id, &task.id, &timer.started_at.naive_utc().date()),
+          id: build_time_entry_id(
+            &user.id,
+            maybe_task.as_ref().map(|task| task.id.clone()).unwrap_or_default(),
+            &timer.started_at.naive_utc().date(),
+          ),
           date_at: timer.started_at.naive_utc().date(),
           minutes,
           customer_id: maybe_project.as_ref().map(|p| p.workspace_id.clone()).unwrap_or_default(),
           customer_name: maybe_project.as_ref().map(|p| p.workspace_name.clone()).unwrap_or_default(),
           project_id: maybe_project.as_ref().map(|p| p.id.clone()).unwrap_or_default(),
           project_name: maybe_project.as_ref().map(|p| p.name.clone()).unwrap_or_default(),
-          service_id: task.id,
-          service_name: task.name,
+          service_id: maybe_task.as_ref().map(|task| task.id.clone()).unwrap_or_default(),
+          service_name: maybe_task.as_ref().map(|task| task.name.clone()).unwrap_or_default(),
           user_id: user.id.clone(),
           user_name: user.name.clone(),
           note: timer.comment.unwrap_or_default(),

@@ -155,7 +155,7 @@ impl EverhourTimeEntry {
     match self.task {
       Some(task) => match task.projects.iter().filter_map(|p| project_map.get(p)).next() {
         Some(project) => Some(TimeEntry {
-          id: build_time_entry_id(&self.user, &task.id, &self.date),
+          id: build_time_entry_id(&self.user, task.id.clone(), &self.date),
           date_at: self.date,
           minutes: self.time,
           customer_id: project.workspace_id.clone(),
@@ -173,7 +173,23 @@ impl EverhourTimeEntry {
         }),
         _ => None,
       },
-      _ => None,
+      None => Some(TimeEntry {
+        id: build_time_entry_id(&self.user, Default::default(), &self.date),
+        date_at: self.date,
+        minutes: self.time,
+        customer_id: Default::default(),
+        customer_name: Default::default(),
+        project_id: Default::default(),
+        project_name: Default::default(),
+        service_id: Default::default(),
+        service_name: Default::default(),
+        user_id: user.id.clone(),
+        user_name: user.name.clone(),
+        note: self.comment,
+        billable: true,
+        locked: self.is_locked,
+        created_at: self.created_at,
+      }),
     }
   }
 }
@@ -267,7 +283,7 @@ pub fn date_span_query_param(span: &DateSpan) -> String {
   }
 }
 
-pub fn build_time_entry_id(user_id: &UserId, service_id: &ServiceId, date: &NaiveDate) -> TimeEntryId {
+pub fn build_time_entry_id(user_id: &UserId, service_id: ServiceId, date: &NaiveDate) -> TimeEntryId {
   TimeEntryId::Str(format!("{}|{}|{}", user_id.str_encoded(), service_id.str_encoded(), date))
 }
 

@@ -10,7 +10,7 @@ pub fn all_projects(client: &dyn Client, output_format: OutputFormat) -> Result<
 
   let grouped: Vec<(&str, Vec<&Project>)> = projects
     .iter()
-    .group_by(|p| p.customer_name.as_str())
+    .chunk_by(|p| p.customer_name.as_str())
     .into_iter()
     .map(|(customer_name, group)| (customer_name, group.collect()))
     .collect();
